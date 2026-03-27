@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-white text-black font-sans;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-black text-white border border-black px-5 py-2.5 transition-colors hover:border-accent;
+  }
+
+  .btn-accent {
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-accent text-black border border-accent px-5 py-2.5 transition-colors hover:border-accent-dark;
+  }
+
+  .btn-secondary {
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-transparent text-black border border-black px-5 py-2.5 transition-colors hover:border-accent;
+  }
+
+  .btn-ghost {
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-transparent text-gray-600 border border-gray-200 px-5 py-2.5 transition-colors hover:border-black;
+  }
+
+  .btn-accept {
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-[#166534] text-white border border-[#166534] px-3 py-1;
+  }
+
+  .btn-decline {
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-transparent text-[#991B1B] border border-[#991B1B] px-3 py-1;
+  }
+
+  /* Form inputs */
+  .input-field {
+    @apply font-mono text-[13px] border border-black bg-white px-3 py-2.5 w-full outline-none focus:border-accent placeholder:text-gray-400;
+  }
+
+  /* Form labels */
+  .form-label {
+    @apply font-mono text-[11px] uppercase tracking-[0.06em] text-gray-600 block mb-1.5;
+  }
+
+  /* Cards */
+  .card {
+    @apply border border-gray-200 bg-white;
+  }
+
+  /* Badges */
+  .badge {
+    @apply font-mono text-[10px] font-medium uppercase tracking-[0.08em] px-2.5 py-[3px];
+  }
+
+  .badge-type {
+    @apply badge bg-black text-white border border-black;
+  }
+
+  .badge-open {
+    @apply badge bg-[#F0FDF0] text-[#166534] border border-[#BBF7D0];
+  }
+
+  .badge-full {
+    @apply badge bg-gray-100 text-gray-600 border border-gray-200;
+  }
+
+  .badge-pending {
+    @apply badge bg-[#FEFCE8] text-accent-dark border border-[#FEF08A];
+  }
+
+  .badge-accent {
+    @apply badge bg-accent text-black border border-accent;
+  }
+
+  /* Section label */
+  .section-label {
+    @apply font-mono text-[11px] uppercase tracking-[0.12em] text-gray-600 mb-6;
+  }
+
+  /* Mono label (for metadata lines) */
+  .mono-label {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-gray-600;
+  }
+}
