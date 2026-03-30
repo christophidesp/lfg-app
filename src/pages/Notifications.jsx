@@ -56,19 +56,19 @@ export default function Notifications() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="font-mono text-[13px] text-gray-600">Loading notifications...</p>
+        <p className="font-mono text-[13px] text-fg-secondary">Loading notifications...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white py-8">
+    <div className="min-h-screen bg-surface py-8">
       <div className="max-w-2xl mx-auto px-6">
         <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em] mb-8">Notifications</h1>
 
         {notifications.length === 0 ? (
           <div className="text-center py-16">
-            <p className="font-mono text-[13px] text-gray-600">No notifications yet</p>
+            <p className="font-mono text-[13px] text-fg-secondary">No notifications yet</p>
           </div>
         ) : (
           <div>
@@ -79,23 +79,23 @@ export default function Notifications() {
                 <Link
                   key={notification.id}
                   to={`/workout/${notification.workout_id}`}
-                  className={`border border-gray-200 p-3 flex gap-3 items-start hover:border-black transition-colors ${
-                    notification.read ? 'bg-gray-100' : ''
+                  className={`border border-border p-3 flex gap-3 items-start hover:border-fg transition-colors ${
+                    notification.read ? 'bg-surface-secondary' : ''
                   }`}
                 >
                   <div
                     className={`w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0 ${
-                      notification.read ? 'bg-gray-200' : 'bg-accent'
+                      notification.read ? 'bg-border' : 'bg-accent'
                     }`}
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] leading-snug">
                       {config.message(notification)}
                     </p>
-                    <p className="font-mono text-[11px] text-gray-600 mt-1">
+                    <p className="font-mono text-[11px] text-fg-secondary mt-1">
                       {notification.workouts?.workout_type} · {notification.workouts?.location}
                     </p>
-                    <p className="font-mono text-[10px] text-gray-400 mt-0.5">
+                    <p className="font-mono text-[10px] text-fg-muted mt-0.5">
                       {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                     </p>
                   </div>

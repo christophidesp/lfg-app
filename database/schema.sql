@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   full_name TEXT,
   bio TEXT,
+  pace_min INTEGER,
+  pace_sec INTEGER,
+  avatar_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

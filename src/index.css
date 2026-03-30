@@ -3,27 +3,50 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Dark theme (default) */
+    --color-surface: #0A0A0A;
+    --color-surface-secondary: #141414;
+    --color-surface-elevated: #1A1A1A;
+    --color-fg: #EAEAEA;
+    --color-fg-secondary: #999999;
+    --color-fg-muted: #666666;
+    --color-border: #2A2A2A;
+    --color-border-strong: #444444;
+  }
+
+  .light {
+    --color-surface: #FAFAFA;
+    --color-surface-secondary: #F0F0EE;
+    --color-surface-elevated: #FFFFFF;
+    --color-fg: #0A0A0A;
+    --color-fg-secondary: #6B6A66;
+    --color-fg-muted: #A8A7A2;
+    --color-border: #E0DFDB;
+    --color-border-strong: #0A0A0A;
+  }
+
   body {
-    @apply bg-white text-black font-sans;
+    @apply bg-surface text-fg font-sans;
   }
 }
 
 @layer components {
   /* Buttons */
   .btn-primary {
-    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-black text-white border border-black px-5 py-2.5 transition-colors hover:border-accent;
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-fg text-surface border border-fg px-5 py-2.5 transition-colors hover:border-accent;
   }
 
   .btn-accent {
-    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-accent text-black border border-accent px-5 py-2.5 transition-colors hover:border-accent-dark;
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-accent text-[#0A0A0A] border border-accent px-5 py-2.5 transition-colors hover:border-accent-dark;
   }
 
   .btn-secondary {
-    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-transparent text-black border border-black px-5 py-2.5 transition-colors hover:border-accent;
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-transparent text-fg border border-border-strong px-5 py-2.5 transition-colors hover:border-accent;
   }
 
   .btn-ghost {
-    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-transparent text-gray-600 border border-gray-200 px-5 py-2.5 transition-colors hover:border-black;
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-transparent text-fg-secondary border border-border px-5 py-2.5 transition-colors hover:border-border-strong;
   }
 
   .btn-accept {
@@ -31,22 +54,22 @@
   }
 
   .btn-decline {
-    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-transparent text-[#991B1B] border border-[#991B1B] px-3 py-1;
+    @apply font-mono text-[12px] font-medium uppercase tracking-[0.06em] bg-transparent text-[#EF4444] border border-[#EF4444] px-3 py-1;
   }
 
   /* Form inputs */
   .input-field {
-    @apply font-mono text-[13px] border border-black bg-white px-3 py-2.5 w-full outline-none focus:border-accent placeholder:text-gray-400;
+    @apply font-mono text-[13px] border border-border-strong bg-surface-elevated text-fg px-3 py-2.5 w-full outline-none focus:border-accent placeholder:text-fg-muted;
   }
 
   /* Form labels */
   .form-label {
-    @apply font-mono text-[11px] uppercase tracking-[0.06em] text-gray-600 block mb-1.5;
+    @apply font-mono text-[11px] uppercase tracking-[0.06em] text-fg-secondary block mb-1.5;
   }
 
   /* Cards */
   .card {
-    @apply border border-gray-200 bg-white;
+    @apply border border-border bg-surface;
   }
 
   /* Badges */
@@ -55,33 +78,33 @@
   }
 
   .badge-type {
-    @apply badge bg-black text-white border border-black;
+    @apply badge bg-fg text-surface border border-fg;
   }
 
   .badge-open {
-    @apply badge bg-[#F0FDF0] text-[#166534] border border-[#BBF7D0];
+    @apply badge bg-[#052E16] text-[#4ADE80] border border-[#166534];
   }
 
   .badge-full {
-    @apply badge bg-gray-100 text-gray-600 border border-gray-200;
+    @apply badge bg-surface-secondary text-fg-secondary border border-border;
   }
 
   .badge-pending {
-    @apply badge bg-[#FEFCE8] text-accent-dark border border-[#FEF08A];
+    @apply badge bg-[#422006] text-accent border border-accent-dark;
   }
 
   .badge-accent {
-    @apply badge bg-accent text-black border border-accent;
+    @apply badge bg-accent text-[#0A0A0A] border border-accent;
   }
 
   /* Section label */
   .section-label {
-    @apply font-mono text-[11px] uppercase tracking-[0.12em] text-gray-600 mb-6;
+    @apply font-mono text-[11px] uppercase tracking-[0.12em] text-fg-secondary mb-6;
   }
 
   /* Mono label (for metadata lines) */
   .mono-label {
-    @apply font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-gray-600;
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-fg-secondary;
   }
 
   /* Places Autocomplete styling */
@@ -96,14 +119,14 @@
 
 /* PlaceAutocompleteElement shadow-DOM overrides */
 gmp-place-autocomplete {
-  --gmpx-color-surface: #FAFAFA;
-  --gmpx-color-on-surface: #0A0A0A;
-  --gmpx-color-outline: #0A0A0A;
+  --gmpx-color-surface: var(--color-surface-elevated);
+  --gmpx-color-on-surface: var(--color-fg);
+  --gmpx-color-outline: var(--color-border-strong);
   --gmpx-color-primary: #E8C547;
   --gmpx-font-family-base: 'IBM Plex Mono', monospace;
   --gmpx-font-size-base: 13px;
   --gmpx-spacing-base: 10px;
-  border: 1px solid #0A0A0A;
+  border: 1px solid var(--color-border-strong);
   border-radius: 0;
   width: 100%;
   display: block;

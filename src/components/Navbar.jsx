@@ -4,7 +4,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { LogOut, Bell } from 'lucide-react';
 
 export default function Navbar() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
@@ -14,7 +14,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="border-b border-black bg-white px-6 py-4 flex items-center justify-between">
+    <nav className="border-b border-border-strong bg-surface px-6 py-4 flex items-center justify-between">
       <Link to="/dashboard" className="font-mono text-[14px] font-medium uppercase tracking-[0.1em]">
         LFG
       </Link>
@@ -22,14 +22,14 @@ export default function Navbar() {
       <div className="flex items-center gap-6">
         <Link
           to="/browse"
-          className="font-mono text-[12px] uppercase tracking-[0.06em] text-gray-600 hover:text-black transition-colors"
+          className="font-mono text-[12px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
         >
           Browse
         </Link>
 
         <Link
           to="/dashboard"
-          className="font-mono text-[12px] uppercase tracking-[0.06em] text-gray-600 hover:text-black transition-colors"
+          className="font-mono text-[12px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
         >
           Dashboard
         </Link>
@@ -43,7 +43,7 @@ export default function Navbar() {
 
         <Link
           to="/notifications"
-          className="relative font-mono text-[12px] uppercase tracking-[0.06em] text-gray-600 hover:text-black transition-colors"
+          className="relative font-mono text-[12px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
         >
           <Bell size={16} />
           {unreadCount > 0 && (
@@ -52,15 +52,15 @@ export default function Navbar() {
         </Link>
 
         <Link
-          to="/profile"
-          className="font-mono text-[12px] uppercase tracking-[0.06em] text-gray-600 hover:text-black transition-colors"
+          to={`/profile/${user?.id}`}
+          className="font-mono text-[12px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
         >
           Profile
         </Link>
 
         <button
           onClick={handleSignOut}
-          className="font-mono text-[12px] uppercase tracking-[0.06em] text-gray-600 hover:text-black transition-colors"
+          className="font-mono text-[12px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
         >
           <LogOut size={16} />
         </button>

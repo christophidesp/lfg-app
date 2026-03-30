@@ -82,16 +82,16 @@ export default function CreateWorkout() {
   };
 
   return (
-    <div className="min-h-screen bg-white py-8">
+    <div className="min-h-screen bg-surface py-8">
       <div className="max-w-2xl mx-auto px-6">
         <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em] mb-2">Create a Workout</h1>
-        <p className="font-sans text-[13px] text-gray-600 mb-8">
+        <p className="font-sans text-[13px] text-fg-secondary mb-8">
           Post a new running session and find training partners.
         </p>
 
-        <form onSubmit={handleSubmit} className="border border-gray-200 bg-white p-6">
+        <form onSubmit={handleSubmit} className="border border-border bg-surface p-6">
           {error && (
-            <div className="border border-[#991B1B] text-[#991B1B] font-mono text-[12px] px-4 py-3 mb-6">
+            <div className="border border-[#EF4444] text-[#EF4444] font-mono text-[12px] px-4 py-3 mb-6">
               {error}
             </div>
           )}

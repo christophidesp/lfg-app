@@ -4,18 +4,25 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        black: '#0A0A0A',
-        white: '#FAFAFA',
-        accent: { DEFAULT: '#E8C547', dark: '#B8991E' },
-        gray: {
-          100: '#F0F0EE',
-          200: '#E0DFDB',
-          400: '#A8A7A2',
-          600: '#6B6A66',
+        surface: {
+          DEFAULT: 'var(--color-surface)',
+          secondary: 'var(--color-surface-secondary)',
+          elevated: 'var(--color-surface-elevated)',
         },
+        fg: {
+          DEFAULT: 'var(--color-fg)',
+          secondary: 'var(--color-fg-secondary)',
+          muted: 'var(--color-fg-muted)',
+        },
+        border: {
+          DEFAULT: 'var(--color-border)',
+          strong: 'var(--color-border-strong)',
+        },
+        accent: { DEFAULT: '#E8C547', dark: '#B8991E' },
       },
       fontFamily: {
         sans: ['IBM Plex Sans', 'system-ui'],

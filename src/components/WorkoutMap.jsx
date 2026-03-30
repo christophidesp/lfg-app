@@ -59,11 +59,11 @@ export default function WorkoutMap({ workouts, userLocation }) {
       marker.addListener('click', () => {
         const dateStr = format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a');
         infoWindowRef.current.setContent(`
-          <div style="font-family: 'IBM Plex Mono', monospace; padding: 4px; max-width: 220px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; padding: 4px; max-width: 220px; background: #141414; color: #EAEAEA;">
             <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">${workout.workout_type}</div>
-            <div style="font-size: 11px; color: #6B6A66; margin-bottom: 2px;">${dateStr}</div>
-            <div style="font-size: 11px; color: #6B6A66; margin-bottom: 8px;">${workout.location}</div>
-            <a href="/workout/${workout.id}" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; background: #0A0A0A; color: #FAFAFA; padding: 4px 12px; text-decoration: none; display: inline-block;">View</a>
+            <div style="font-size: 11px; color: #999999; margin-bottom: 2px;">${dateStr}</div>
+            <div style="font-size: 11px; color: #999999; margin-bottom: 8px;">${workout.location}</div>
+            <a href="/workout/${workout.id}" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; background: #E8C547; color: #0A0A0A; padding: 4px 12px; text-decoration: none; display: inline-block;">View</a>
           </div>
         `);
         infoWindowRef.current.open({
@@ -77,6 +77,6 @@ export default function WorkoutMap({ workouts, userLocation }) {
   }, [workouts, ready]);
 
   return (
-    <div ref={mapRef} className="w-full h-[500px] border border-gray-200" />
+    <div ref={mapRef} className="w-full h-[500px] border border-border" />
   );
 }

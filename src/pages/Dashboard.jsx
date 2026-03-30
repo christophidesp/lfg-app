@@ -43,7 +43,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="font-mono text-[13px] text-gray-600">Loading your workouts...</p>
+        <p className="font-mono text-[13px] text-fg-secondary">Loading your workouts...</p>
       </div>
     );
   }
@@ -51,44 +51,44 @@ export default function Dashboard() {
   const totalWorkouts = myWorkouts.length + joinedWorkouts.length;
 
   return (
-    <div className="min-h-screen bg-white py-8">
+    <div className="min-h-screen bg-surface py-8">
       <div className="max-w-5xl mx-auto px-6">
         <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em] mb-8">Dashboard</h1>
 
         {/* Stats Bar */}
-        <div className="grid grid-cols-3 gap-[1px] bg-black border border-black mb-10">
-          <div className="bg-white p-4">
+        <div className="grid grid-cols-3 gap-[1px] bg-border-strong border border-border-strong mb-10">
+          <div className="bg-surface p-4">
             <div className="font-sans text-[28px] font-light tracking-[-0.02em] leading-none mb-1">
               {myWorkouts.length}
             </div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-gray-600">
+            <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-secondary">
               Created
             </div>
           </div>
-          <div className="bg-white p-4">
+          <div className="bg-surface p-4">
             <div className="font-sans text-[28px] font-light tracking-[-0.02em] leading-none mb-1">
               {joinedWorkouts.length}
             </div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-gray-600">
+            <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-secondary">
               Joined
             </div>
           </div>
-          <div className="bg-white p-4">
+          <div className="bg-surface p-4">
             <div className="font-sans text-[28px] font-light tracking-[-0.02em] leading-none mb-1">
               {totalWorkouts}
             </div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-gray-600">
+            <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-secondary">
               Total
             </div>
           </div>
         </div>
 
         {/* My Workouts */}
-        <div className="border-t border-black pt-6 mb-10">
+        <div className="border-t border-border-strong pt-6 mb-10">
           <p className="section-label">My Workouts</p>
           {myWorkouts.length === 0 ? (
             <div className="text-center py-16">
-              <p className="font-mono text-[13px] text-gray-600 mb-4">
+              <p className="font-mono text-[13px] text-fg-secondary mb-4">
                 No workouts created yet.
               </p>
               <Link to="/create-workout" className="btn-accent">
@@ -101,23 +101,23 @@ export default function Dashboard() {
                 <Link
                   key={workout.id}
                   to={`/workout/${workout.id}`}
-                  className="card hover:border-black transition-colors"
+                  className="card hover:border-fg transition-colors"
                 >
-                  <div className="p-5 border-b border-gray-200">
+                  <div className="p-5 border-b border-border">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="badge-type">{workout.workout_type}</span>
                     </div>
                     <h3 className="font-sans text-[15px] font-medium">{workout.workout_type}</h3>
                   </div>
                   <div className="p-5 flex flex-col gap-2.5">
-                    <p className="font-mono text-[12px] text-gray-600">
+                    <p className="font-mono text-[12px] text-fg-secondary">
                       {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
                     </p>
-                    <p className="font-mono text-[12px] text-gray-600">
+                    <p className="font-mono text-[12px] text-fg-secondary">
                       {workout.location}
                     </p>
                     {workout.description && (
-                      <p className="text-[13px] font-light text-gray-600 line-clamp-2">
+                      <p className="text-[13px] font-light text-fg-secondary line-clamp-2">
                         {workout.description}
                       </p>
                     )}
@@ -129,11 +129,11 @@ export default function Dashboard() {
         </div>
 
         {/* Joined Workouts */}
-        <div className="border-t border-black pt-6">
+        <div className="border-t border-border-strong pt-6">
           <p className="section-label">Workouts I'm Joining</p>
           {joinedWorkouts.length === 0 ? (
             <div className="text-center py-16">
-              <p className="font-mono text-[13px] text-gray-600 mb-4">
+              <p className="font-mono text-[13px] text-fg-secondary mb-4">
                 No workouts joined yet.
               </p>
               <Link to="/browse" className="btn-primary">
@@ -148,9 +148,9 @@ export default function Dashboard() {
                   <Link
                     key={participant.id}
                     to={`/workout/${workout.id}`}
-                    className="card hover:border-black transition-colors"
+                    className="card hover:border-fg transition-colors"
                   >
-                    <div className="p-5 border-b border-gray-200">
+                    <div className="p-5 border-b border-border">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="badge-type">{workout.workout_type}</span>
                         <span className="badge-open">Joined</span>
@@ -158,14 +158,14 @@ export default function Dashboard() {
                       <h3 className="font-sans text-[15px] font-medium">{workout.workout_type}</h3>
                     </div>
                     <div className="p-5 flex flex-col gap-2.5">
-                      <p className="font-mono text-[12px] text-gray-600">
+                      <p className="font-mono text-[12px] text-fg-secondary">
                         {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
                       </p>
-                      <p className="font-mono text-[12px] text-gray-600">
+                      <p className="font-mono text-[12px] text-fg-secondary">
                         {workout.location}
                       </p>
                       {workout.description && (
-                        <p className="text-[13px] font-light text-gray-600 line-clamp-2">
+                        <p className="text-[13px] font-light text-fg-secondary line-clamp-2">
                           {workout.description}
                         </p>
                       )}

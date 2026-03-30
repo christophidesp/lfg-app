@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
+import Avatar from '../components/Avatar';
 
 export default function WorkoutDetail() {
   const { id } = useParams();
@@ -27,7 +28,7 @@ export default function WorkoutDetail() {
       .from('workouts')
       .select(`
         *,
-        profiles!creator_id (full_name)
+        profiles!creator_id (full_name, avatar_url)
       `)
       .eq('id', id)
       .single();
@@ -39,7 +40,7 @@ export default function WorkoutDetail() {
         .from('workout_participants')
         .select(`
           *,
-          profiles!user_id (full_name)
+          profiles!user_id (full_name, avatar_url)
         `)
         .eq('workout_id', id)
         .order('created_at', { ascending: true });
@@ -53,7 +54,7 @@ export default function WorkoutDetail() {
         .from('workout_comments')
         .select(`
           *,
-          profiles!user_id (full_name)
+          profiles!user_id (full_name, avatar_url)
         `)
         .eq('workout_id', id)
         .order('created_at', { ascending: true });
@@ -191,7 +192,7 @@ export default function WorkoutDetail() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="font-mono text-[13px] text-gray-600">Loading workout...</p>
+        <p className="font-mono text-[13px] text-fg-secondary">Loading workout...</p>
       </div>
     );
   }
@@ -199,7 +200,7 @@ export default function WorkoutDetail() {
   if (!workout) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="font-mono text-[13px] text-gray-600">Workout not found</p>
+        <p className="font-mono text-[13px] text-fg-secondary">Workout not found</p>
       </div>
     );
   }
@@ -211,12 +212,12 @@ export default function WorkoutDetail() {
   const spotsLeft = workout.max_participants - acceptedParticipants.length;
 
   return (
-    <div className="min-h-screen bg-white py-8">
+    <div className="min-h-screen bg-surface py-8">
       <div className="max-w-3xl mx-auto px-6">
         {/* Workout Card */}
         <div className="card mb-6">
           {/* Header */}
-          <div className="p-5 border-b border-gray-200">
+          <div className="p-5 border-b border-border">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="badge-type">{workout.workout_type}</span>
@@ -226,48 +227,56 @@ export default function WorkoutDetail() {
                   <span className="badge-open">Open</span>
                 )}
               </div>
-              <span className="font-mono text-[12px] text-gray-600">
+              <span className="font-mono text-[12px] text-fg-secondary">
                 {acceptedParticipants.length}/{workout.max_participants}
               </span>
             </div>
             <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em]">{workout.workout_type}</h1>
-            <p className="font-mono text-[11px] text-gray-600 mt-1">
-              Hosted by {workout.profiles?.full_name || 'Runner'}
-            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <Avatar
+                name={workout.profiles?.full_name}
+                avatarUrl={workout.profiles?.avatar_url}
+                userId={workout.creator_id}
+                size="sm"
+              />
+              <p className="font-mono text-[11px] text-fg-secondary">
+                Hosted by <Link to={`/profile/${workout.creator_id}`} className="underline hover:text-fg transition-colors">{workout.profiles?.full_name || 'Runner'}</Link>
+              </p>
+            </div>
           </div>
 
           {/* Body */}
           <div className="p-5 flex flex-col gap-2.5">
-            <p className="font-mono text-[12px] text-gray-600">
+            <p className="font-mono text-[12px] text-fg-secondary">
               {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
             </p>
-            <p className="font-mono text-[12px] text-gray-600">
+            <p className="font-mono text-[12px] text-fg-secondary">
               {workout.location}
             </p>
             {(workout.distance || workout.pace) && (
-              <p className="font-mono text-[12px] text-gray-600">
+              <p className="font-mono text-[12px] text-fg-secondary">
                 {workout.distance && `${workout.distance} km`}
                 {workout.distance && workout.pace && ' · '}
                 {workout.pace && `${workout.pace} min/km`}
               </p>
             )}
             {workout.description && (
-              <p className="text-[13px] font-light text-gray-600 leading-relaxed mt-2">
+              <p className="text-[13px] font-light text-fg-secondary leading-relaxed mt-2">
                 {workout.description}
               </p>
             )}
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-3.5 bg-gray-100 border-t border-gray-200 flex items-center justify-between">
+          <div className="px-5 py-3.5 bg-surface-secondary border-t border-border flex items-center justify-between">
             <div className="flex-1 mr-4">
-              <div className="h-[2px] bg-gray-200 w-full">
+              <div className="h-[2px] bg-border w-full">
                 <div
-                  className={`h-[2px] ${spotsLeft <= 1 ? 'bg-accent' : 'bg-black'}`}
+                  className={`h-[2px] ${spotsLeft <= 1 ? 'bg-accent' : 'bg-fg'}`}
                   style={{ width: `${(acceptedParticipants.length / workout.max_participants) * 100}%` }}
                 />
               </div>
-              <p className="font-mono text-[10px] text-gray-600 mt-1.5">
+              <p className="font-mono text-[10px] text-fg-secondary mt-1.5">
                 {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} left
               </p>
             </div>
@@ -326,12 +335,12 @@ export default function WorkoutDetail() {
         )}
 
         {/* Participants */}
-        <div className="border-t border-black pt-6 mb-8">
+        <div className="border-t border-border-strong pt-6 mb-8">
           <p className="section-label">Participants</p>
 
           {acceptedParticipants.length === 0 && pendingParticipants.length === 0 ? (
             <div className="text-center py-16">
-              <p className="font-mono text-[13px] text-gray-600">No participants yet</p>
+              <p className="font-mono text-[13px] text-fg-secondary">No participants yet</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -340,10 +349,19 @@ export default function WorkoutDetail() {
                   <p className="mono-label mb-3">Confirmed</p>
                   <div className="space-y-0">
                     {acceptedParticipants.map(participant => (
-                      <div key={participant.id} className="border border-gray-200 p-3 flex items-center justify-between bg-gray-100">
-                        <span className="font-mono text-[13px] font-medium">
-                          {participant.profiles?.full_name || 'Runner'}
-                        </span>
+                      <div key={participant.id} className="border border-border p-3 flex items-center justify-between bg-surface-secondary">
+                        <Link to={`/profile/${participant.user_id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+                          <Avatar
+                            name={participant.profiles?.full_name}
+                            avatarUrl={participant.profiles?.avatar_url}
+                            userId={participant.user_id}
+                            size="sm"
+                            linked={false}
+                          />
+                          <span className="font-mono text-[13px] font-medium">
+                            {participant.profiles?.full_name || 'Runner'}
+                          </span>
+                        </Link>
                         <span className="badge-open">Accepted</span>
                       </div>
                     ))}
@@ -356,10 +374,19 @@ export default function WorkoutDetail() {
                   <p className="mono-label mb-3">Pending Requests</p>
                   <div className="space-y-0">
                     {pendingParticipants.map(participant => (
-                      <div key={participant.id} className="border border-gray-200 p-3 flex items-center justify-between">
-                        <span className="font-mono text-[13px] font-medium">
-                          {participant.profiles?.full_name || 'Runner'}
-                        </span>
+                      <div key={participant.id} className="border border-border p-3 flex items-center justify-between">
+                        <Link to={`/profile/${participant.user_id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+                          <Avatar
+                            name={participant.profiles?.full_name}
+                            avatarUrl={participant.profiles?.avatar_url}
+                            userId={participant.user_id}
+                            size="sm"
+                            linked={false}
+                          />
+                          <span className="font-mono text-[13px] font-medium">
+                            {participant.profiles?.full_name || 'Runner'}
+                          </span>
+                        </Link>
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleApprove(participant.id)}
@@ -384,7 +411,7 @@ export default function WorkoutDetail() {
         </div>
 
         {/* Comments */}
-        <div className="border-t border-black pt-6">
+        <div className="border-t border-border-strong pt-6">
           <p className="section-label">Comments</p>
 
           {/* Comment input */}
@@ -406,24 +433,24 @@ export default function WorkoutDetail() {
 
           {comments.length === 0 ? (
             <div className="text-center py-16">
-              <p className="font-mono text-[13px] text-gray-600">No comments yet. Be the first to comment.</p>
+              <p className="font-mono text-[13px] text-fg-secondary">No comments yet. Be the first to comment.</p>
             </div>
           ) : (
             <div>
               {comments.map((comment, index) => (
                 <div
                   key={comment.id}
-                  className={`border border-gray-200 p-4 ${index === comments.length - 1 ? 'bg-gray-100' : ''}`}
+                  className={`border border-border p-4 ${index === comments.length - 1 ? 'bg-surface-secondary' : ''}`}
                 >
                   <div className="flex items-center">
                     <span className="font-mono text-[11px] font-medium">
                       {comment.profiles?.full_name || 'Runner'}
                     </span>
-                    <span className="font-mono text-[10px] text-gray-400 ml-2">
+                    <span className="font-mono text-[10px] text-fg-muted ml-2">
                       {format(new Date(comment.created_at), 'MMM d, h:mm a')}
                     </span>
                   </div>
-                  <p className="text-[13px] text-gray-600 leading-relaxed mt-1.5">
+                  <p className="text-[13px] text-fg-secondary leading-relaxed mt-1.5">
                     {comment.comment}
                   </p>
                 </div>

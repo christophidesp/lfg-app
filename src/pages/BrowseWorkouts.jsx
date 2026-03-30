@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 import WorkoutMap from '../components/WorkoutMap';
 import PlacesAutocomplete from '../components/PlacesAutocomplete';
+import Avatar from '../components/Avatar';
 
 const RADIUS_OPTIONS = [
   { label: '5 km', value: 5 },
@@ -33,7 +34,13 @@ export default function BrowseWorkouts() {
   const [userLocation, setUserLocation] = useState(null);
   const [locationDenied, setLocationDenied] = useState(false);
   const [searchLocation, setSearchLocation] = useState(null);
+  const [autocompleteKey, setAutocompleteKey] = useState(0);
   const [filters, setFilters] = useState({
+    workout_type: '',
+    location: '',
+    radius: null,
+  });
+  const [appliedFilters, setAppliedFilters] = useState({
     workout_type: '',
     location: '',
     radius: null,
@@ -59,31 +66,31 @@ export default function BrowseWorkouts() {
     fetchWorkouts();
   }, []);
 
-  const fetchWorkouts = async () => {
+  const fetchWorkouts = async (overrideFilters) => {
     setLoading(true);
+    const active = overrideFilters || appliedFilters;
 
     let query = supabase
       .from('workouts')
       .select(`
         *,
-        profiles!creator_id (full_name),
+        profiles!creator_id (full_name, avatar_url),
         workout_participants (id, status)
       `)
       .gte('workout_date', new Date().toISOString())
       .order('workout_date', { ascending: true });
 
-    if (filters.workout_type) {
-      query = query.eq('workout_type', filters.workout_type);
+    if (active.workout_type) {
+      query = query.eq('workout_type', active.workout_type);
     }
-    if (filters.location) {
-      query = query.ilike('location', `%${filters.location}%`);
+    if (active.location) {
+      query = query.ilike('location', `%${active.location}%`);
     }
 
     const { data, error } = await query;
 
     if (!error && data) {
-      const filtered = data.filter(w => w.creator_id !== user.id);
-      setWorkouts(filtered);
+      setWorkouts(data);
     }
 
     setLoading(false);
@@ -116,8 +123,32 @@ export default function BrowseWorkouts() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchWorkouts();
+    const next = { ...filters };
+    setAppliedFilters(next);
+    fetchWorkouts(next);
   };
+
+  const clearFilter = (key) => {
+    const next = { ...appliedFilters, [key]: key === 'radius' ? null : '' };
+    setAppliedFilters(next);
+    setFilters(prev => ({ ...prev, [key]: key === 'radius' ? null : '' }));
+    if (key === 'location') {
+      setSearchLocation(null);
+      setAutocompleteKey(k => k + 1);
+    }
+    fetchWorkouts(next);
+  };
+
+  const clearAllFilters = () => {
+    const next = { workout_type: '', location: '', radius: null };
+    setAppliedFilters(next);
+    setFilters(next);
+    setSearchLocation(null);
+    setAutocompleteKey(k => k + 1);
+    fetchWorkouts(next);
+  };
+
+  const hasActiveFilters = appliedFilters.workout_type || appliedFilters.location || appliedFilters.radius != null;
 
   const getParticipantCount = (workout) => {
     return workout.workout_participants?.filter(p => p.status === 'accepted').length || 0;
@@ -132,38 +163,38 @@ export default function BrowseWorkouts() {
 
   // Apply client-side distance filtering
   const displayedWorkouts = workouts.filter(w => {
-    if (filters.radius == null || !effectiveCenter) return true;
+    if (appliedFilters.radius == null || !effectiveCenter) return true;
     const dist = getDistance(w);
     if (dist === null) return true; // show workouts without coords
-    return dist <= filters.radius;
+    return dist <= appliedFilters.radius;
   });
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="font-mono text-[13px] text-gray-600">Loading workouts...</p>
+        <p className="font-mono text-[13px] text-fg-secondary">Loading workouts...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white py-8">
+    <div className="min-h-screen bg-surface py-8">
       <div className="max-w-5xl mx-auto px-6">
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em]">Browse Workouts</h1>
-          <div className="flex border border-gray-200">
+          <div className="flex border border-border">
             <button
               onClick={() => setViewMode('list')}
               className={`font-mono text-[11px] uppercase tracking-[0.06em] px-4 py-2 transition-colors ${
-                viewMode === 'list' ? 'bg-black text-white' : 'bg-white text-gray-600 hover:text-black'
+                viewMode === 'list' ? 'bg-fg text-surface' : 'bg-surface text-fg-secondary hover:text-fg'
               }`}
             >
               List
             </button>
             <button
               onClick={() => setViewMode('map')}
-              className={`font-mono text-[11px] uppercase tracking-[0.06em] px-4 py-2 border-l border-gray-200 transition-colors ${
-                viewMode === 'map' ? 'bg-black text-white' : 'bg-white text-gray-600 hover:text-black'
+              className={`font-mono text-[11px] uppercase tracking-[0.06em] px-4 py-2 border-l border-border transition-colors ${
+                viewMode === 'map' ? 'bg-fg text-surface' : 'bg-surface text-fg-secondary hover:text-fg'
               }`}
             >
               Map
@@ -172,7 +203,7 @@ export default function BrowseWorkouts() {
         </div>
 
         {/* Filters */}
-        <form onSubmit={handleSearch} className="border border-gray-200 p-5 mb-8">
+        <form onSubmit={handleSearch} className="border border-border p-5 mb-8">
           <div className="grid md:grid-cols-4 gap-4">
             <div>
               <label htmlFor="workout_type" className="form-label">Type</label>
@@ -197,6 +228,7 @@ export default function BrowseWorkouts() {
             <div>
               <label className="form-label">Location</label>
               <PlacesAutocomplete
+                key={autocompleteKey}
                 value={filters.location}
                 onChange={handleLocationSelect}
               />
@@ -223,12 +255,54 @@ export default function BrowseWorkouts() {
               </button>
             </div>
           </div>
-          {locationDenied && (
-            <p className="font-mono text-[11px] text-gray-400 mt-3">
+          {locationDenied && !searchLocation && (
+            <p className="font-mono text-[11px] text-fg-muted mt-3">
               Location access denied — distance filter unavailable.
             </p>
           )}
         </form>
+
+        {/* Active Filters */}
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2 flex-wrap mb-6">
+            <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-fg-muted">
+              Filtering by:
+            </span>
+            {appliedFilters.workout_type && (
+              <button
+                onClick={() => clearFilter('workout_type')}
+                className="inline-flex items-center gap-1.5 font-mono text-[11px] bg-surface-secondary border border-border px-2.5 py-1 text-fg-secondary hover:border-fg transition-colors"
+              >
+                Type: {appliedFilters.workout_type}
+                <span className="text-fg-muted text-[13px] leading-none">&times;</span>
+              </button>
+            )}
+            {appliedFilters.location && (
+              <button
+                onClick={() => clearFilter('location')}
+                className="inline-flex items-center gap-1.5 font-mono text-[11px] bg-surface-secondary border border-border px-2.5 py-1 text-fg-secondary hover:border-fg transition-colors max-w-[250px]"
+              >
+                <span className="truncate">Location: {appliedFilters.location}</span>
+                <span className="text-fg-muted text-[13px] leading-none flex-shrink-0">&times;</span>
+              </button>
+            )}
+            {appliedFilters.radius != null && (
+              <button
+                onClick={() => clearFilter('radius')}
+                className="inline-flex items-center gap-1.5 font-mono text-[11px] bg-surface-secondary border border-border px-2.5 py-1 text-fg-secondary hover:border-fg transition-colors"
+              >
+                Within {appliedFilters.radius} km
+                <span className="text-fg-muted text-[13px] leading-none">&times;</span>
+              </button>
+            )}
+            <button
+              onClick={clearAllFilters}
+              className="font-mono text-[11px] text-fg-muted hover:text-fg transition-colors underline ml-1"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
 
         {/* Map View */}
         {viewMode === 'map' && (
@@ -242,7 +316,7 @@ export default function BrowseWorkouts() {
           <>
             {displayedWorkouts.length === 0 ? (
               <div className="text-center py-16">
-                <p className="font-mono text-[13px] text-gray-600">
+                <p className="font-mono text-[13px] text-fg-secondary">
                   No workouts found. Try adjusting your filters or check back later.
                 </p>
               </div>
@@ -258,10 +332,10 @@ export default function BrowseWorkouts() {
                     <Link
                       key={workout.id}
                       to={`/workout/${workout.id}`}
-                      className="card hover:border-black transition-colors"
+                      className="card hover:border-fg transition-colors"
                     >
                       {/* Header */}
-                      <div className="p-5 border-b border-gray-200">
+                      <div className="p-5 border-b border-border">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <span className="badge-type">{workout.workout_type}</span>
@@ -271,22 +345,34 @@ export default function BrowseWorkouts() {
                               <span className="badge-open">Open</span>
                             )}
                           </div>
-                          <span className="font-mono text-[12px] text-gray-600">
+                          <span className="font-mono text-[12px] text-fg-secondary">
                             {count}/{workout.max_participants}
                           </span>
                         </div>
                         <h3 className="font-sans text-[15px] font-medium">{workout.workout_type}</h3>
-                        <p className="font-mono text-[11px] text-gray-600 mt-1">
-                          Hosted by {workout.profiles?.full_name || 'Runner'}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <Avatar
+                            name={workout.profiles?.full_name}
+                            avatarUrl={workout.profiles?.avatar_url}
+                            userId={workout.creator_id}
+                            size="sm"
+                          />
+                          <p className="font-mono text-[11px] text-fg-secondary">
+                            {workout.creator_id === user.id ? (
+                              'Created by you'
+                            ) : (
+                              <>Hosted by <Link to={`/profile/${workout.creator_id}`} className="underline hover:text-fg transition-colors" onClick={(e) => e.stopPropagation()}>{workout.profiles?.full_name || 'Runner'}</Link></>
+                            )}
+                          </p>
+                        </div>
                       </div>
 
                       {/* Body */}
                       <div className="p-5 flex flex-col gap-2.5">
-                        <p className="font-mono text-[12px] text-gray-600">
+                        <p className="font-mono text-[12px] text-fg-secondary">
                           {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
                         </p>
-                        <p className="font-mono text-[12px] text-gray-600">
+                        <p className="font-mono text-[12px] text-fg-secondary">
                           {workout.location}
                         </p>
                         {distance !== null && (
@@ -295,27 +381,27 @@ export default function BrowseWorkouts() {
                           </p>
                         )}
                         {workout.distance && (
-                          <p className="font-mono text-[12px] text-gray-600">
+                          <p className="font-mono text-[12px] text-fg-secondary">
                             {workout.distance} km {workout.pace && `@ ${workout.pace}`}
                           </p>
                         )}
                         {workout.description && (
-                          <p className="text-[13px] font-light text-gray-600 line-clamp-2">
+                          <p className="text-[13px] font-light text-fg-secondary line-clamp-2">
                             {workout.description}
                           </p>
                         )}
                       </div>
 
                       {/* Footer */}
-                      <div className="px-5 py-3.5 bg-gray-100 border-t border-gray-200 flex items-center justify-between">
+                      <div className="px-5 py-3.5 bg-surface-secondary border-t border-border flex items-center justify-between">
                         <div className="flex-1 mr-4">
-                          <div className="h-[2px] bg-gray-200 w-full">
+                          <div className="h-[2px] bg-border w-full">
                             <div
-                              className={`h-[2px] ${spotsLeft <= 1 ? 'bg-accent' : 'bg-black'}`}
+                              className={`h-[2px] ${spotsLeft <= 1 ? 'bg-accent' : 'bg-fg'}`}
                               style={{ width: `${(count / workout.max_participants) * 100}%` }}
                             />
                           </div>
-                          <p className="font-mono text-[10px] text-gray-600 mt-1.5">
+                          <p className="font-mono text-[10px] text-fg-secondary mt-1.5">
                             {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} left
                           </p>
                         </div>

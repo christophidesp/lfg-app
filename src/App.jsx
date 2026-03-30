@@ -8,7 +8,8 @@ import Dashboard from './pages/Dashboard';
 import CreateWorkout from './pages/CreateWorkout';
 import BrowseWorkouts from './pages/BrowseWorkouts';
 import WorkoutDetail from './pages/WorkoutDetail';
-import Profile from './pages/Profile';
+import ProfilePage from './pages/ProfilePage';
+import EditProfile from './pages/EditProfile';
 import Notifications from './pages/Notifications';
 import Navbar from './components/Navbar';
 
@@ -114,10 +115,18 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/profile"
+          path="/profile/edit"
           element={
             <ProtectedRoute>
-              <Profile />
+              <EditProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/:id"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
