@@ -34,7 +34,13 @@ export default function SignUp() {
       setError(error.message);
       setLoading(false);
     } else {
-      navigate('/dashboard');
+      const pendingInvite = sessionStorage.getItem('invite_token');
+      if (pendingInvite) {
+        sessionStorage.removeItem('invite_token');
+        navigate(`/invite/${pendingInvite}`);
+      } else {
+        navigate('/dashboard');
+      }
     }
   };
 

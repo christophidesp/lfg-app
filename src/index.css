@@ -59,7 +59,11 @@
 
   /* Form inputs */
   .input-field {
-    @apply font-mono text-[13px] border border-border-strong bg-surface-elevated text-fg px-3 py-2.5 w-full outline-none focus:border-accent placeholder:text-fg-muted;
+    @apply font-mono text-[13px] border border-border-strong bg-surface-elevated text-fg px-3 h-[48px] w-full outline-none focus:border-accent placeholder:text-fg-muted;
+  }
+
+  textarea.input-field {
+    @apply h-auto py-3;
   }
 
   /* Form labels */
@@ -121,18 +125,55 @@
 gmp-place-autocomplete {
   --gmpx-color-surface: var(--color-surface-elevated);
   --gmpx-color-on-surface: var(--color-fg);
-  --gmpx-color-outline: var(--color-border-strong);
+  --gmpx-color-outline: transparent;
   --gmpx-color-primary: #E8C547;
   --gmpx-font-family-base: 'IBM Plex Mono', monospace;
   --gmpx-font-size-base: 13px;
-  --gmpx-spacing-base: 10px;
+  --gmpx-spacing-base: 0px;
   border: 1px solid var(--color-border-strong);
   border-radius: 0;
   width: 100%;
-  display: block;
+  height: 48px;
 }
 
 gmp-place-autocomplete:focus-within {
-  --gmpx-color-outline: #E8C547;
   border-color: #E8C547;
+}
+
+/* Distance slider */
+.distance-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  background: var(--color-border);
+  outline: none;
+}
+
+.distance-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #E8C547;
+  border: none;
+  cursor: pointer;
+}
+
+.distance-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #E8C547;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.distance-slider::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--color-border);
+}
+
+.distance-slider::-moz-range-track {
+  height: 2px;
+  background: var(--color-border);
 }

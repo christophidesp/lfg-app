@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -20,6 +20,8 @@ export default function CreateWorkout() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [userClubs, setUserClubs] = useState([]);
+  const [userMemberships, setUserMemberships] = useState([]);
 
   const [formData, setFormData] = useState({
     workout_type: 'Easy Run',
@@ -31,8 +33,30 @@ export default function CreateWorkout() {
     distance: '',
     pace: '',
     description: '',
-    max_participants: 5
+    max_participants: '',
+    visibility: 'public',
+    club_id: '',
   });
+
+  useEffect(() => {
+    const fetchUserClubs = async () => {
+      const { data } = await supabase
+        .from('club_members')
+        .select(`
+          club_id,
+          role,
+          clubs (id, name, workout_creation)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'approved');
+
+      if (data) {
+        setUserMemberships(data);
+        setUserClubs(data.map(m => m.clubs));
+      }
+    };
+    fetchUserClubs();
+  }, [user.id]);
 
   const handleLocationChange = useCallback(({ address, lat, lng }) => {
     setFormData(prev => ({ ...prev, location: address, lat, lng }));
@@ -52,6 +76,15 @@ export default function CreateWorkout() {
     setError('');
 
     try {
+      // Validate club workout creation permission
+      if (formData.visibility === 'club' && formData.club_id) {
+        const membership = userMemberships.find(m => m.club_id === formData.club_id);
+        const club = membership?.clubs;
+        if (club?.workout_creation === 'admins' && !['owner', 'admin'].includes(membership?.role)) {
+          throw new Error('Only admins and owners can create workouts for this club.');
+        }
+      }
+
       const { data, error: insertError } = await supabase
         .from('workouts')
         .insert([
@@ -66,7 +99,9 @@ export default function CreateWorkout() {
             distance: formData.distance ? parseFloat(formData.distance) : null,
             pace: formData.pace || null,
             description: formData.description,
-            max_participants: parseInt(formData.max_participants)
+            max_participants: formData.max_participants ? parseInt(formData.max_participants) : null,
+            visibility: formData.visibility,
+            club_id: formData.visibility === 'club' ? formData.club_id || null : null,
           }
         ])
         .select()
@@ -177,19 +212,70 @@ export default function CreateWorkout() {
             </div>
 
             <div>
-              <label htmlFor="max_participants" className="form-label">Max Participants *</label>
+              <label htmlFor="max_participants" className="form-label">Max Participants</label>
               <input
                 id="max_participants"
                 name="max_participants"
                 type="number"
-                min="1"
-                max="20"
-                required
+                min="2"
                 value={formData.max_participants}
                 onChange={handleChange}
                 className="input-field"
+                placeholder="Leave empty for unlimited"
               />
             </div>
+
+            <div>
+              <label htmlFor="visibility" className="form-label">Visibility</label>
+              <select
+                id="visibility"
+                name="visibility"
+                value={formData.visibility}
+                onChange={handleChange}
+                className="input-field"
+              >
+                <option value="public">Public</option>
+                <option value="club">Club</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+
+            {formData.visibility === 'club' && (
+              <div>
+                <label htmlFor="club_id" className="form-label">Club *</label>
+                {userClubs.length === 0 ? (
+                  <p className="font-mono text-[12px] text-fg-muted">You are not a member of any clubs.</p>
+                ) : (
+                  <>
+                    <select
+                      id="club_id"
+                      name="club_id"
+                      value={formData.club_id}
+                      onChange={handleChange}
+                      className="input-field"
+                      required
+                    >
+                      <option value="">Select a club</option>
+                      {userClubs.map(club => (
+                        <option key={club.id} value={club.id}>{club.name}</option>
+                      ))}
+                    </select>
+                    {formData.club_id && (() => {
+                      const membership = userMemberships.find(m => m.club_id === formData.club_id);
+                      const club = membership?.clubs;
+                      if (club?.workout_creation === 'admins' && !['owner', 'admin'].includes(membership?.role)) {
+                        return (
+                          <p className="font-mono text-[11px] text-[#EF4444] mt-1.5">
+                            Only admins can create workouts for this club.
+                          </p>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </>
+                )}
+              </div>
+            )}
 
             <div>
               <label htmlFor="description" className="form-label">Description</label>

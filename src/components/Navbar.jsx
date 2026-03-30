@@ -28,6 +28,13 @@ export default function Navbar() {
         </Link>
 
         <Link
+          to="/clubs"
+          className="font-mono text-[12px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
+        >
+          Clubs
+        </Link>
+
+        <Link
           to="/dashboard"
           className="font-mono text-[12px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
         >

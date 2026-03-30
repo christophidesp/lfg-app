@@ -11,6 +11,11 @@ import WorkoutDetail from './pages/WorkoutDetail';
 import ProfilePage from './pages/ProfilePage';
 import EditProfile from './pages/EditProfile';
 import Notifications from './pages/Notifications';
+import ClubsPage from './pages/ClubsPage';
+import CreateClub from './pages/CreateClub';
+import ClubDetail from './pages/ClubDetail';
+import ClubSettings from './pages/ClubSettings';
+import InvitePage from './pages/InvitePage';
 import Navbar from './components/Navbar';
 
 // Protected route wrapper
@@ -105,6 +110,42 @@ function AppRoutes() {
               <WorkoutDetail />
             </ProtectedRoute>
           } 
+        />
+        <Route
+          path="/clubs"
+          element={
+            <ProtectedRoute>
+              <ClubsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/clubs/new"
+          element={
+            <ProtectedRoute>
+              <CreateClub />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/clubs/:id"
+          element={
+            <ProtectedRoute>
+              <ClubDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/clubs/:id/settings"
+          element={
+            <ProtectedRoute>
+              <ClubSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/invite/:token"
+          element={<InvitePage />}
         />
         <Route
           path="/notifications"

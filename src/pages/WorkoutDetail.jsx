@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
+import { Share2, Check } from 'lucide-react';
 
 export default function WorkoutDetail() {
   const { id } = useParams();
@@ -16,6 +17,9 @@ export default function WorkoutDetail() {
   const [newComment, setNewComment] = useState('');
   const [userParticipation, setUserParticipation] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [inviteToken, setInviteToken] = useState(null);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchWorkoutDetails();
@@ -176,6 +180,40 @@ export default function WorkoutDetail() {
     setSubmitting(false);
   };
 
+  const handleShare = async () => {
+    setShareLoading(true);
+
+    // Check if invite already exists
+    const { data: existing } = await supabase
+      .from('workout_invites')
+      .select('token')
+      .eq('workout_id', id)
+      .maybeSingle();
+
+    if (existing) {
+      setInviteToken(existing.token);
+    } else {
+      const { data: newInvite } = await supabase
+        .from('workout_invites')
+        .insert([{ workout_id: id, created_by: user.id }])
+        .select('token')
+        .single();
+
+      if (newInvite) {
+        setInviteToken(newInvite.token);
+      }
+    }
+
+    setShareLoading(false);
+  };
+
+  const handleCopyLink = async () => {
+    const url = `https://lfg-app-plum.vercel.app/invite/${inviteToken}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this workout?')) return;
 
@@ -280,14 +318,34 @@ export default function WorkoutDetail() {
                 {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} left
               </p>
             </div>
-            {isCreator && (
-              <button
-                onClick={handleDelete}
-                className="btn-decline"
-              >
-                Delete
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {isCreator && !inviteToken && (
+                <button
+                  onClick={handleShare}
+                  disabled={shareLoading}
+                  className="btn-secondary flex items-center gap-1.5"
+                >
+                  <Share2 size={13} />
+                  {shareLoading ? 'Generating...' : 'Share'}
+                </button>
+              )}
+              {isCreator && inviteToken && (
+                <button
+                  onClick={handleCopyLink}
+                  className="btn-secondary flex items-center gap-1.5"
+                >
+                  {copied ? <><Check size={13} /> Copied!</> : <><Share2 size={13} /> Copy link</>}
+                </button>
+              )}
+              {isCreator && (
+                <button
+                  onClick={handleDelete}
+                  className="btn-decline"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

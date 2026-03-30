@@ -37,6 +37,9 @@ export default function WorkoutMap({ workouts, userLocation }) {
         fullscreenControl: false,
       });
       infoWindowRef.current = new google.maps.InfoWindow();
+    } else if (userLocation) {
+      mapInstanceRef.current.panTo(center);
+      mapInstanceRef.current.setZoom(12);
     }
   }, [ready, userLocation]);
 

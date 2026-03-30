@@ -9,7 +9,9 @@
       "Bash(npm install:*)",
       "mcp__da6644f6-69da-4bae-82e0-fbc7c19057cc__list_projects",
       "mcp__da6644f6-69da-4bae-82e0-fbc7c19057cc__apply_migration",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(find /Users/panos/Panos/lfg-app -name *.sql -o -name *migration* -o -name *schema*)",
+      "mcp__da6644f6-69da-4bae-82e0-fbc7c19057cc__execute_sql"
     ]
   }
 }
