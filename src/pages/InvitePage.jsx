@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
+import { Lock } from 'lucide-react';
 
 export default function InvitePage() {
   const { token } = useParams();
@@ -43,7 +44,9 @@ export default function InvitePage() {
       .from('workouts')
       .select(`
         *,
-        profiles!creator_id (full_name, avatar_url)
+        profiles!creator_id (full_name, avatar_url),
+        clubs (id, name),
+        workout_participants (id, status)
       `)
       .eq('id', inviteData.workout_id)
       .single();
@@ -133,59 +136,114 @@ export default function InvitePage() {
         </div>
 
         {/* Workout Preview Card */}
-        <div className="card mb-6">
-          <div className="p-5 border-b border-border">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="badge-type">{workout.workout_type}</span>
-            </div>
-            <h2 className="font-sans text-[18px] font-medium">{workout.workout_type}</h2>
-            <div className="flex items-center gap-2 mt-2">
-              <Avatar
-                name={workout.profiles?.full_name}
-                avatarUrl={workout.profiles?.avatar_url}
-                userId={workout.creator_id}
-                size="sm"
-                linked={false}
-              />
-              <p className="font-mono text-[11px] text-fg-secondary">
-                Hosted by {workout.profiles?.full_name || 'Runner'}
-              </p>
-            </div>
-          </div>
-          <div className="p-5 flex flex-col gap-2.5">
-            <p className="font-mono text-[12px] text-fg-secondary">
-              {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
-            </p>
-            <p className="font-mono text-[12px] text-fg-secondary">
-              {workout.location}
-            </p>
-            {(workout.distance || workout.pace) && (
-              <p className="font-mono text-[12px] text-fg-secondary">
-                {workout.distance && `${workout.distance} km`}
-                {workout.distance && workout.pace && ' · '}
-                {workout.pace && `${workout.pace} min/km`}
-              </p>
-            )}
-            {workout.description && (
-              <p className="text-[13px] font-light text-fg-secondary line-clamp-3 mt-1">
-                {workout.description}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Actions */}
         {!user ? (
-          <div className="space-y-3">
-            <button onClick={handleSignupRedirect} className="btn-accent w-full">
-              Sign up to join
-            </button>
-            <p className="font-mono text-[11px] text-fg-muted text-center">
-              Already have an account?{' '}
-              <Link to="/signin" className="text-fg underline">Sign in</Link>
-            </p>
-          </div>
+          <>
+            {/* Teaser card for non-authenticated users */}
+            <div className="card mb-6">
+              <div className="p-5 border-b border-border">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="badge-type">{workout.workout_type}</span>
+                </div>
+                <h2 className="font-sans text-[18px] font-medium">{workout.workout_type}</h2>
+                <div className="flex items-center gap-2 mt-2">
+                  <Avatar
+                    name={workout.profiles?.full_name}
+                    avatarUrl={workout.profiles?.avatar_url}
+                    userId={workout.creator_id}
+                    size="sm"
+                    linked={false}
+                  />
+                  <p className="font-mono text-[11px] text-fg-secondary">
+                    Hosted by {workout.profiles?.full_name || 'Runner'}
+                  </p>
+                </div>
+              </div>
+              <div className="p-5 flex flex-col gap-2.5">
+                <p className="font-mono text-[12px] text-fg-secondary">
+                  {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
+                </p>
+                {workout.clubs && (
+                  <p className="font-mono text-[12px] text-fg-secondary">
+                    Club: <Link to={`/clubs/${workout.clubs.id}`} className="text-accent underline hover:text-accent-dark transition-colors">{workout.clubs.name}</Link>
+                  </p>
+                )}
+                <p className="font-mono text-[12px] text-fg-secondary">
+                  {workout.workout_participants?.filter(p => p.status === 'accepted').length || 0} {(workout.workout_participants?.filter(p => p.status === 'accepted').length || 0) === 1 ? 'runner' : 'runners'} joined
+                </p>
+              </div>
+            </div>
+
+            {/* Locked section */}
+            <div className="border border-border bg-surface-secondary p-6 mb-6 text-center">
+              <Lock size={20} className="mx-auto text-fg-muted mb-3" />
+              <p className="font-mono text-[12px] text-fg-secondary">
+                Sign up to see the full details and request to join
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button onClick={handleSignupRedirect} className="btn-accent w-full">
+                Sign up to join
+              </button>
+              <p className="font-mono text-[11px] text-fg-muted text-center">
+                Already have an account?{' '}
+                <Link to="/signin" className="text-fg underline">Sign in</Link>
+              </p>
+            </div>
+          </>
         ) : (
+          <>
+            {/* Full card for authenticated users */}
+            <div className="card mb-6">
+              <div className="p-5 border-b border-border">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="badge-type">{workout.workout_type}</span>
+                </div>
+                <h2 className="font-sans text-[18px] font-medium">{workout.workout_type}</h2>
+                <div className="flex items-center gap-2 mt-2">
+                  <Avatar
+                    name={workout.profiles?.full_name}
+                    avatarUrl={workout.profiles?.avatar_url}
+                    userId={workout.creator_id}
+                    size="sm"
+                    linked={false}
+                  />
+                  <p className="font-mono text-[11px] text-fg-secondary">
+                    Hosted by {workout.profiles?.full_name || 'Runner'}
+                  </p>
+                </div>
+              </div>
+              <div className="p-5 flex flex-col gap-2.5">
+                <p className="font-mono text-[12px] text-fg-secondary">
+                  {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
+                </p>
+                <p className="font-mono text-[12px] text-fg-secondary">
+                  {workout.location}
+                </p>
+                {workout.clubs && (
+                  <p className="font-mono text-[12px] text-fg-secondary">
+                    Club: <Link to={`/clubs/${workout.clubs.id}`} className="text-accent underline hover:text-accent-dark transition-colors">{workout.clubs.name}</Link>
+                  </p>
+                )}
+                {(workout.distance || workout.pace) && (
+                  <p className="font-mono text-[12px] text-fg-secondary">
+                    {workout.distance && `${workout.distance} km`}
+                    {workout.distance && workout.pace && ' · '}
+                    {workout.pace && `${workout.pace} min/km`}
+                  </p>
+                )}
+                {workout.description && (
+                  <p className="text-[13px] font-light text-fg-secondary line-clamp-3 mt-1">
+                    {workout.description}
+                  </p>
+                )}
+              </div>
+            </div>
+        </>
+        )}
+
+        {/* Actions for authenticated users */}
+        {user && (
           <div>
             {userParticipation?.status === 'accepted' && (
               <div className="badge-open font-mono text-[12px] px-4 py-3 w-full text-center">
