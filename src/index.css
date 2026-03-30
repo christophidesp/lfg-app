@@ -83,4 +83,33 @@
   .mono-label {
     @apply font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-gray-600;
   }
+
+  /* Places Autocomplete styling */
+  .places-autocomplete-container {
+    @apply w-full;
+  }
+
+  .places-autocomplete-container gmp-place-autocomplete {
+    @apply w-full;
+  }
+}
+
+/* PlaceAutocompleteElement shadow-DOM overrides */
+gmp-place-autocomplete {
+  --gmpx-color-surface: #FAFAFA;
+  --gmpx-color-on-surface: #0A0A0A;
+  --gmpx-color-outline: #0A0A0A;
+  --gmpx-color-primary: #E8C547;
+  --gmpx-font-family-base: 'IBM Plex Mono', monospace;
+  --gmpx-font-size-base: 13px;
+  --gmpx-spacing-base: 10px;
+  border: 1px solid #0A0A0A;
+  border-radius: 0;
+  width: 100%;
+  display: block;
+}
+
+gmp-place-autocomplete:focus-within {
+  --gmpx-color-outline: #E8C547;
+  border-color: #E8C547;
 }

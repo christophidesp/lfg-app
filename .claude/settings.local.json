@@ -4,7 +4,11 @@
       "Bash(find /Users/panos/Panos/lfg-app/src -type f \\\\\\(-name *.jsx -o -name *.js -o -name *.json \\\\\\))",
       "Bash(claude mcp:*)",
       "mcp__da6644f6-69da-4bae-82e0-fbc7c19057cc__list_tables",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find /Users/panos/Panos/lfg-app/src -type f \\\\\\(-name *.tsx -o -name *.ts -o -name *.jsx -o -name *.js \\\\\\))",
+      "Bash(npm install:*)",
+      "mcp__da6644f6-69da-4bae-82e0-fbc7c19057cc__list_projects",
+      "mcp__da6644f6-69da-4bae-82e0-fbc7c19057cc__apply_migration"
     ]
   }
 }

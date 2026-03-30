@@ -57,6 +57,9 @@ CREATE TABLE IF NOT EXISTS workouts (
   workout_type TEXT NOT NULL,
   workout_date TIMESTAMP WITH TIME ZONE NOT NULL,
   location TEXT NOT NULL,
+  lat DOUBLE PRECISION,
+  lng DOUBLE PRECISION,
+  address TEXT,
   distance DECIMAL(5,2), -- in kilometers
   pace TEXT, -- e.g., "5:30" (min:sec per km)
   description TEXT,

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import PlacesAutocomplete from '../components/PlacesAutocomplete';
 
 const WORKOUT_TYPES = [
   'Easy Run',
@@ -25,11 +26,17 @@ export default function CreateWorkout() {
     workout_date: '',
     workout_time: '',
     location: '',
+    lat: null,
+    lng: null,
     distance: '',
     pace: '',
     description: '',
     max_participants: 5
   });
+
+  const handleLocationChange = useCallback(({ address, lat, lng }) => {
+    setFormData(prev => ({ ...prev, location: address, lat, lng }));
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,6 +60,9 @@ export default function CreateWorkout() {
             workout_type: formData.workout_type,
             workout_date: `${formData.workout_date}T${formData.workout_time}`,
             location: formData.location,
+            lat: formData.lat,
+            lng: formData.lng,
+            address: formData.location,
             distance: formData.distance ? parseFloat(formData.distance) : null,
             pace: formData.pace || null,
             description: formData.description,
@@ -132,15 +142,9 @@ export default function CreateWorkout() {
 
             <div>
               <label htmlFor="location" className="form-label">Location *</label>
-              <input
-                id="location"
-                name="location"
-                type="text"
-                required
+              <PlacesAutocomplete
                 value={formData.location}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="e.g., Central Park, New York"
+                onChange={handleLocationChange}
               />
             </div>
 
