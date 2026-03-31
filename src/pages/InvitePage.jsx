@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
 import { Lock } from 'lucide-react';
+import WorkoutCover from '../components/WorkoutCover';
 
 export default function InvitePage() {
   const { token } = useParams();
@@ -140,11 +141,12 @@ export default function InvitePage() {
           <>
             {/* Teaser card for non-authenticated users */}
             <div className="card mb-6">
+              <WorkoutCover imageUrl={workout.image_url} workoutType={workout.workout_type} />
               <div className="p-5 border-b border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="badge-type">{workout.workout_type}</span>
                 </div>
-                <h2 className="font-sans text-[18px] font-medium">{workout.workout_type}</h2>
+                <h2 className="font-sans text-[18px] font-medium">{workout.name || workout.workout_type}</h2>
                 <div className="flex items-center gap-2 mt-2">
                   <Avatar
                     name={workout.profiles?.full_name}
@@ -195,11 +197,12 @@ export default function InvitePage() {
           <>
             {/* Full card for authenticated users */}
             <div className="card mb-6">
+              <WorkoutCover imageUrl={workout.image_url} workoutType={workout.workout_type} />
               <div className="p-5 border-b border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="badge-type">{workout.workout_type}</span>
                 </div>
-                <h2 className="font-sans text-[18px] font-medium">{workout.workout_type}</h2>
+                <h2 className="font-sans text-[18px] font-medium">{workout.name || workout.workout_type}</h2>
                 <div className="flex items-center gap-2 mt-2">
                   <Avatar
                     name={workout.profiles?.full_name}

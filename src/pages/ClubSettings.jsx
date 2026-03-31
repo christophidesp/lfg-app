@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import Avatar from '../components/Avatar';
+import { Share2, Check, RotateCcw } from 'lucide-react';
 
 export default function ClubSettings() {
   const { id } = useParams();
@@ -18,6 +19,9 @@ export default function ClubSettings() {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [inviteToken, setInviteToken] = useState(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchClubData();
@@ -64,7 +68,50 @@ export default function ClubSettings() {
       setUserRole(me.role);
     }
 
+    // Fetch existing invite
+    const { data: inviteData } = await supabase
+      .from('club_invites')
+      .select('token')
+      .eq('club_id', id)
+      .maybeSingle();
+
+    if (inviteData) {
+      setInviteToken(inviteData.token);
+    }
+
     setLoading(false);
+  };
+
+  const handleGenerateInvite = async () => {
+    setInviteLoading(true);
+    const { data } = await supabase
+      .from('club_invites')
+      .insert([{ club_id: id, created_by: user.id }])
+      .select('token')
+      .single();
+
+    if (data) {
+      setInviteToken(data.token);
+    }
+    setInviteLoading(false);
+  };
+
+  const handleCopyInvite = async () => {
+    const url = `https://lfg-app-plum.vercel.app/clubs/invite/${inviteToken}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleRevokeInvite = async () => {
+    setInviteLoading(true);
+    await supabase
+      .from('club_invites')
+      .delete()
+      .eq('club_id', id);
+
+    setInviteToken(null);
+    setInviteLoading(false);
   };
 
   const handleChange = (e) => {
@@ -258,6 +305,44 @@ export default function ClubSettings() {
             </button>
           </div>
         </form>
+
+        {/* Invite Members */}
+        <div className="border border-border bg-surface p-6 mb-6">
+          <h2 className="section-label">Invite Members</h2>
+          {inviteToken ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={`https://lfg-app-plum.vercel.app/clubs/invite/${inviteToken}`}
+                  className="input-field flex-1 text-fg-muted"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={handleCopyInvite} className="btn-secondary flex items-center gap-1.5">
+                  {copied ? <><Check size={13} /> Copied!</> : <><Share2 size={13} /> Copy link</>}
+                </button>
+                <button
+                  onClick={handleRevokeInvite}
+                  disabled={inviteLoading}
+                  className="btn-decline flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <RotateCcw size={13} /> Revoke
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleGenerateInvite}
+              disabled={inviteLoading}
+              className="btn-accent flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Share2 size={13} />
+              {inviteLoading ? 'Generating...' : 'Generate Invite Link'}
+            </button>
+          )}
+        </div>
 
         {/* Manage Members */}
         <div className="border border-border bg-surface p-6">

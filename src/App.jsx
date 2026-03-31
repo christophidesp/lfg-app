@@ -16,6 +16,7 @@ import CreateClub from './pages/CreateClub';
 import ClubDetail from './pages/ClubDetail';
 import ClubSettings from './pages/ClubSettings';
 import InvitePage from './pages/InvitePage';
+import ClubInvitePage from './pages/ClubInvitePage';
 import Navbar from './components/Navbar';
 
 // Protected route wrapper
@@ -146,6 +147,10 @@ function AppRoutes() {
         <Route
           path="/invite/:token"
           element={<InvitePage />}
+        />
+        <Route
+          path="/clubs/invite/:token"
+          element={<ClubInvitePage />}
         />
         <Route
           path="/notifications"

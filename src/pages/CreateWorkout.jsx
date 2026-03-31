@@ -12,7 +12,8 @@ const WORKOUT_TYPES = [
   'Recovery Run',
   'Fartlek',
   'Hill Repeats',
-  'Track Workout'
+  'Track Workout',
+  'Race'
 ];
 
 export default function CreateWorkout() {
@@ -22,6 +23,9 @@ export default function CreateWorkout() {
   const [error, setError] = useState('');
   const [userClubs, setUserClubs] = useState([]);
   const [userMemberships, setUserMemberships] = useState([]);
+
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const [formData, setFormData] = useState({
     workout_type: 'Easy Run',
@@ -36,6 +40,7 @@ export default function CreateWorkout() {
     max_participants: '',
     visibility: 'public',
     club_id: '',
+    name: '',
   });
 
   useEffect(() => {
@@ -76,6 +81,20 @@ export default function CreateWorkout() {
     setError('');
 
     try {
+      let image_url = null;
+      if (imageFile) {
+        const ext = imageFile.name.split('.').pop();
+        const filePath = `${user.id}/${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('workout-images')
+          .upload(filePath, imageFile);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage
+          .from('workout-images')
+          .getPublicUrl(filePath);
+        image_url = urlData.publicUrl;
+      }
+
       // Validate club workout creation permission
       if (formData.visibility === 'club' && formData.club_id) {
         const membership = userMemberships.find(m => m.club_id === formData.club_id);
@@ -102,6 +121,8 @@ export default function CreateWorkout() {
             max_participants: formData.max_participants ? parseInt(formData.max_participants) : null,
             visibility: formData.visibility,
             club_id: formData.visibility === 'club' ? formData.club_id || null : null,
+            name: formData.name || null,
+            image_url,
           }
         ])
         .select()
@@ -132,6 +153,19 @@ export default function CreateWorkout() {
           )}
 
           <div className="space-y-6">
+            <div>
+              <label htmlFor="name" className="form-label">Workout Name</label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="e.g., Tuesday Morning Intervals"
+              />
+            </div>
+
             <div>
               <label htmlFor="workout_type" className="form-label">Workout Type *</label>
               <select
@@ -288,6 +322,42 @@ export default function CreateWorkout() {
                 className="input-field"
                 placeholder="Add any additional details about the workout, meeting point, etc."
               />
+            </div>
+
+            <div>
+              <label className="form-label">Cover Image</label>
+              <div className="flex items-center gap-4">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="Preview" className="w-24 h-16 object-cover border border-border" />
+                ) : (
+                  <div className="w-24 h-16 bg-surface-secondary border border-border flex items-center justify-center">
+                    <span className="font-mono text-[11px] text-fg-muted">No image</span>
+                  </div>
+                )}
+                <label className="btn-secondary text-[11px] px-4 py-1.5 cursor-pointer">
+                  Upload
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      setImageFile(file);
+                      setImagePreview(URL.createObjectURL(file));
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                {imagePreview && (
+                  <button
+                    type="button"
+                    onClick={() => { setImageFile(null); setImagePreview(null); }}
+                    className="font-mono text-[11px] text-fg-muted hover:text-fg transition-colors underline"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

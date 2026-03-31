@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import WorkoutMap from '../components/WorkoutMap';
 import PlacesAutocomplete from '../components/PlacesAutocomplete';
 import Avatar from '../components/Avatar';
+import WorkoutCover from '../components/WorkoutCover';
 
 const SORT_OPTIONS = [
   { label: 'Date (soonest)', value: 'date_asc' },
@@ -276,6 +277,7 @@ export default function BrowseWorkouts() {
                 <option value="Fartlek">Fartlek</option>
                 <option value="Hill Repeats">Hill Repeats</option>
                 <option value="Track Workout">Track Workout</option>
+                <option value="Race">Race</option>
               </select>
             </div>
             <div>
@@ -468,6 +470,7 @@ export default function BrowseWorkouts() {
                       to={`/workout/${workout.id}`}
                       className={`card hover:border-fg transition-colors ${isPast ? 'opacity-60' : ''}`}
                     >
+                      <WorkoutCover imageUrl={workout.image_url} workoutType={workout.workout_type} />
                       {/* Header */}
                       <div className="p-5 border-b border-border">
                         <div className="flex items-center justify-between mb-2">
@@ -492,7 +495,7 @@ export default function BrowseWorkouts() {
                             </span>
                           )}
                         </div>
-                        <h3 className="font-sans text-[15px] font-medium">{workout.workout_type}</h3>
+                        <h3 className="font-sans text-[15px] font-medium">{workout.name || workout.workout_type}</h3>
                         <div className="flex items-center gap-2 mt-1.5">
                           <Avatar
                             name={workout.profiles?.full_name}

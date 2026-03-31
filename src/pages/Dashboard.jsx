@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
+import WorkoutCover from '../components/WorkoutCover';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -103,11 +104,12 @@ export default function Dashboard() {
                   to={`/workout/${workout.id}`}
                   className="card hover:border-fg transition-colors"
                 >
+                  <WorkoutCover imageUrl={workout.image_url} workoutType={workout.workout_type} />
                   <div className="p-5 border-b border-border">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="badge-type">{workout.workout_type}</span>
                     </div>
-                    <h3 className="font-sans text-[15px] font-medium">{workout.workout_type}</h3>
+                    <h3 className="font-sans text-[15px] font-medium">{workout.name || workout.workout_type}</h3>
                   </div>
                   <div className="p-5 flex flex-col gap-2.5">
                     <p className="font-mono text-[12px] text-fg-secondary">
@@ -150,12 +152,13 @@ export default function Dashboard() {
                     to={`/workout/${workout.id}`}
                     className="card hover:border-fg transition-colors"
                   >
+                    <WorkoutCover imageUrl={workout.image_url} workoutType={workout.workout_type} />
                     <div className="p-5 border-b border-border">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="badge-type">{workout.workout_type}</span>
                         <span className="badge-open">Joined</span>
                       </div>
-                      <h3 className="font-sans text-[15px] font-medium">{workout.workout_type}</h3>
+                      <h3 className="font-sans text-[15px] font-medium">{workout.name || workout.workout_type}</h3>
                     </div>
                     <div className="p-5 flex flex-col gap-2.5">
                       <p className="font-mono text-[12px] text-fg-secondary">

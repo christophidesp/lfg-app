@@ -35,9 +35,13 @@ export default function SignUp() {
       setLoading(false);
     } else {
       const pendingInvite = sessionStorage.getItem('invite_token');
+      const pendingClubInvite = sessionStorage.getItem('club_invite_token');
       if (pendingInvite) {
         sessionStorage.removeItem('invite_token');
         navigate(`/invite/${pendingInvite}`);
+      } else if (pendingClubInvite) {
+        sessionStorage.removeItem('club_invite_token');
+        navigate(`/clubs/invite/${pendingClubInvite}`);
       } else {
         navigate('/dashboard');
       }

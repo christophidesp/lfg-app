@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
 import { Share2, Check } from 'lucide-react';
+import WorkoutCover from '../components/WorkoutCover';
 
 export default function WorkoutDetail() {
   const { id } = useParams();
@@ -254,6 +255,7 @@ export default function WorkoutDetail() {
       <div className="max-w-3xl mx-auto px-6">
         {/* Workout Card */}
         <div className="card mb-6">
+          <WorkoutCover imageUrl={workout.image_url} workoutType={workout.workout_type} />
           {/* Header */}
           <div className="p-5 border-b border-border">
             <div className="flex items-center justify-between mb-3">
@@ -269,7 +271,7 @@ export default function WorkoutDetail() {
                 {acceptedParticipants.length}/{workout.max_participants}
               </span>
             </div>
-            <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em]">{workout.workout_type}</h1>
+            <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em]">{workout.name || workout.workout_type}</h1>
             <div className="flex items-center gap-2 mt-2">
               <Avatar
                 name={workout.profiles?.full_name}
