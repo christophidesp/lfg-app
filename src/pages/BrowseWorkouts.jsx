@@ -41,12 +41,12 @@ export default function BrowseWorkouts() {
   const [filters, setFilters] = useState({
     workout_type: '',
     location: '',
-    radius: 10,
+    radius: 30,
   });
   const [appliedFilters, setAppliedFilters] = useState({
     workout_type: '',
     location: '',
-    radius: 10,
+    radius: 30,
   });
   const [radiusEnabled, setRadiusEnabled] = useState(false);
 
@@ -152,7 +152,7 @@ export default function BrowseWorkouts() {
     if (key === 'radius') {
       next = { ...appliedFilters, radius: null };
       setRadiusEnabled(false);
-      setFilters(prev => ({ ...prev, radius: 10 }));
+      setFilters(prev => ({ ...prev, radius: 30 }));
     } else {
       next = { ...appliedFilters, [key]: '' };
       setFilters(prev => ({ ...prev, [key]: '' }));
@@ -168,7 +168,7 @@ export default function BrowseWorkouts() {
   const clearAllFilters = () => {
     const next = { workout_type: '', location: '', radius: null };
     setAppliedFilters(next);
-    setFilters({ workout_type: '', location: '', radius: 10 });
+    setFilters({ workout_type: '', location: '', radius: 30 });
     setRadiusEnabled(false);
     setSearchLocation(null);
     setAutocompleteKey(k => k + 1);
