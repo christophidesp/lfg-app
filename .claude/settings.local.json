@@ -12,7 +12,8 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(find /Users/panos/Panos/lfg-app -name *.sql -o -name *migration* -o -name *schema*)",
       "mcp__da6644f6-69da-4bae-82e0-fbc7c19057cc__execute_sql",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(find /Users/panos/Panos/lfg-app -maxdepth 2 -type f \\\\\\(-name .env* -o -name config.toml \\\\\\))"
     ]
   }
 }

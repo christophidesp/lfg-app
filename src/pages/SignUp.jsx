@@ -9,6 +9,7 @@ export default function SignUp() {
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -34,17 +35,8 @@ export default function SignUp() {
       setError(error.message);
       setLoading(false);
     } else {
-      const pendingInvite = sessionStorage.getItem('invite_token');
-      const pendingClubInvite = sessionStorage.getItem('club_invite_token');
-      if (pendingInvite) {
-        sessionStorage.removeItem('invite_token');
-        navigate(`/invite/${pendingInvite}`);
-      } else if (pendingClubInvite) {
-        sessionStorage.removeItem('club_invite_token');
-        navigate(`/clubs/invite/${pendingClubInvite}`);
-      } else {
-        navigate('/dashboard');
-      }
+      setLoading(false);
+      setConfirmationSent(true);
     }
   };
 
@@ -60,7 +52,19 @@ export default function SignUp() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="border border-border bg-surface p-6">
+        {confirmationSent && (
+          <div className="border border-accent bg-surface p-5 mb-6">
+            <p className="text-[14px] font-medium mb-1">Check your email</p>
+            <p className="text-[13px] text-fg-secondary font-light leading-relaxed mb-3">
+              We sent a confirmation link to <span className="text-fg font-medium">{email}</span>. Please confirm your email before signing in.
+            </p>
+            <Link to="/signin" className="font-mono text-[12px] uppercase tracking-[0.06em] text-accent hover:underline">
+              Go to sign in →
+            </Link>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className={`border border-border bg-surface p-6 ${confirmationSent ? 'opacity-50 pointer-events-none' : ''}`}>
           {error && (
             <div className="border border-[#EF4444] text-[#EF4444] font-mono text-[12px] px-4 py-3 mb-6">
               {error}

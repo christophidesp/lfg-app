@@ -5,13 +5,16 @@ import { supabase } from '../lib/supabase';
 import Avatar from '../components/Avatar';
 
 export default function EditProfile() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     bio: '',
@@ -227,6 +230,65 @@ export default function EditProfile() {
             </button>
           </div>
         </form>
+
+        {/* Delete account */}
+        <div className="border border-border mt-10 p-6">
+          <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-fg-secondary mb-3">
+            Danger zone
+          </p>
+          <p className="text-[14px] font-medium mb-1">Delete your account</p>
+          <p className="text-[13px] text-fg-secondary font-light leading-relaxed mb-4">
+            This will permanently delete your account, profile, workouts, and all associated data. This action cannot be undone.
+          </p>
+
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="font-mono text-[12px] uppercase tracking-[0.06em] text-[#EF4444] border border-[#EF4444] px-5 py-2.5 hover:bg-[#EF4444] hover:text-surface transition-colors"
+            >
+              Delete account
+            </button>
+          ) : (
+            <div className="border border-[#EF4444] p-4">
+              <p className="text-[13px] text-fg mb-3">
+                Type <span className="font-mono font-medium">delete my account</span> to confirm.
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="delete my account"
+                className="input-field mb-3"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    setDeleting(true);
+                    setError('');
+                    const { error: rpcError } = await supabase.rpc('delete_own_account');
+                    if (rpcError) {
+                      setError('Failed to delete account: ' + rpcError.message);
+                      setDeleting(false);
+                      return;
+                    }
+                    await signOut();
+                    navigate('/');
+                  }}
+                  disabled={deleteConfirmText !== 'delete my account' || deleting}
+                  className="font-mono text-[12px] uppercase tracking-[0.06em] bg-[#EF4444] text-white border border-[#EF4444] px-5 py-2.5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  {deleting ? 'Deleting...' : 'Permanently delete'}
+                </button>
+                <button
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
+                  className="btn-ghost"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
