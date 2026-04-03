@@ -264,6 +264,27 @@ export default function Home() {
           ) : (
             <PlacesAutocomplete onChange={handlePlaceSelect} />
           )}
+
+          {/* Context bar */}
+          {searchLocation ? (
+            <div className="border-y border-border py-1.5 px-5 -mx-6 mt-3 flex items-center justify-between">
+              <span className="font-mono text-[11px] text-fg-muted">
+                Sorted by distance from {searchLabel}
+              </span>
+              <button
+                onClick={clearSearch}
+                className="font-mono text-[11px] text-accent hover:underline flex-shrink-0 ml-3"
+              >
+                Clear ×
+              </button>
+            </div>
+          ) : locationGranted && userLocation ? (
+            <div className="border-y border-border py-1.5 px-5 -mx-6 mt-3">
+              <span className="font-mono text-[11px] text-fg-muted">
+                Using your current location
+              </span>
+            </div>
+          ) : null}
         </section>
 
         {/* Hidden measurement row — renders all chips off-screen to measure */}
@@ -314,45 +335,47 @@ export default function Home() {
         )}
         <div className="pb-4" />
 
-        {/* Near you section */}
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.12em] text-fg-secondary">
-              Near you
-            </h2>
-            {hasLocation && geoWorkouts.length > 0 && (
-              <button
-                onClick={() => setShowMap(true)}
-                className="font-mono text-[11px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
-              >
-                See map →
-              </button>
-            )}
-          </div>
-
-          {!locationGranted && !locationRequested ? (
-            <NearYouBanner onAllow={requestLocation} />
-          ) : !locationGranted && locationRequested && !searchLocation ? (
-            <NearYouBanner onAllow={requestLocation} denied />
-          ) : nearYouResult.radiusNote === 'none' ? (
-            <p className="text-[13px] text-fg-muted font-light">
-              No workouts near you right now.
-            </p>
-          ) : (
-            <>
-              {nearYouResult.radiusNote && (
-                <p className="font-mono text-[11px] text-fg-muted mb-3">
-                  {nearYouResult.radiusNote}
-                </p>
+        {/* Near you section — hidden when a search location is active */}
+        {!searchLocation && (
+          <section className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-mono text-[11px] uppercase tracking-[0.12em] text-fg-secondary">
+                Near you
+              </h2>
+              {hasLocation && geoWorkouts.length > 0 && (
+                <button
+                  onClick={() => setShowMap(true)}
+                  className="font-mono text-[11px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
+                >
+                  See map →
+                </button>
               )}
-              <div className="flex gap-3 overflow-x-auto -mx-6 px-6 pb-2 scrollbar-hide">
-                {nearYouResult.cards.map((w) => (
-                  <NearYouCard key={w.id} workout={w} onClick={() => navigate(`/workout/${w.id}`)} />
-                ))}
-              </div>
-            </>
-          )}
-        </section>
+            </div>
+
+            {!locationGranted && !locationRequested ? (
+              <NearYouBanner onAllow={requestLocation} />
+            ) : !locationGranted && locationRequested ? (
+              <NearYouBanner onAllow={requestLocation} denied />
+            ) : nearYouResult.radiusNote === 'none' ? (
+              <p className="text-[13px] text-fg-muted font-light">
+                No workouts near you right now.
+              </p>
+            ) : (
+              <>
+                {nearYouResult.radiusNote && (
+                  <p className="font-mono text-[11px] text-fg-muted mb-3">
+                    {nearYouResult.radiusNote}
+                  </p>
+                )}
+                <div className="flex gap-3 overflow-x-auto -mx-6 px-6 pb-2 scrollbar-hide">
+                  {nearYouResult.cards.map((w) => (
+                    <NearYouCard key={w.id} workout={w} onClick={() => navigate(`/workout/${w.id}`)} />
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+        )}
 
         {/* Upcoming workouts */}
         <section>
@@ -368,6 +391,11 @@ export default function Home() {
             </p>
           ) : (
             <div className="flex flex-col">
+              {searchLocation && (
+                <p className="font-mono text-[11px] text-fg-muted italic mb-2">
+                  Showing all upcoming workouts · sorted by distance from {searchLabel}
+                </p>
+              )}
               {groupedUpcoming.map((group) => (
                 <div key={group.dateKey}>
                   <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-fg-muted pt-4 pb-2">
@@ -444,31 +472,33 @@ function NearYouBanner({ onAllow, denied }) {
 
 function NearYouCard({ workout, onClick }) {
   const spots = spotsRemaining(workout);
-  const time = format(new Date(workout.workout_date), 'EEE · HH:mm');
+  const dateTime = format(new Date(workout.workout_date), 'EEE d MMM · HH:mm').toUpperCase();
 
   return (
     <button
       onClick={onClick}
       className="w-[168px] flex-shrink-0 border border-border bg-surface text-left p-4 hover:border-border-strong transition-colors"
     >
-      <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-secondary mb-1">
-        {workout.workout_type}
+      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fg tabular-nums mb-1.5">
+        {dateTime}
       </p>
-      <p className="text-[13px] font-medium text-fg mb-2 leading-tight line-clamp-2">
+      <p className="text-[13px] font-medium text-fg mb-1.5 leading-tight line-clamp-2">
         {workout.name || workout.workout_type}
       </p>
-      <p className="font-mono text-[11px] text-fg-secondary mb-1">{time}</p>
-      <div className="flex items-center gap-2 font-mono text-[11px] text-fg-secondary mb-2">
+      <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-muted mb-2">
+        {workout.workout_type}
+      </p>
+      <div className="flex items-center gap-1.5 flex-wrap font-mono text-[10px] text-fg-muted mb-2">
         {workout.distance && <span>{workout.distance} km</span>}
         {workout.pace && <span>· {workout.pace}/km</span>}
+        {workout._distance !== null && (
+          <span>
+            · {workout._distance < 1
+              ? `${(workout._distance * 1000).toFixed(0)} m away`
+              : `${workout._distance.toFixed(1)} km away`}
+          </span>
+        )}
       </div>
-      {workout._distance !== null && (
-        <p className="font-mono text-[10px] text-fg-muted mb-2">
-          {workout._distance < 1
-            ? `${(workout._distance * 1000).toFixed(0)} m away`
-            : `${workout._distance.toFixed(1)} km away`}
-        </p>
-      )}
       <span
         className={`font-mono text-[10px] uppercase tracking-[0.08em] px-2 py-[2px] inline-block ${
           spots <= 0

@@ -17,6 +17,9 @@ const NOTIFICATION_CONFIG = {
   join_rejected: {
     message: (n) => `${n.from_profile?.full_name || 'The host'} declined your request to join`,
   },
+  workout_updated: {
+    message: (n) => `${n.from_profile?.full_name || 'The host'} updated a workout you joined`,
+  },
 };
 
 export default function Navbar() {

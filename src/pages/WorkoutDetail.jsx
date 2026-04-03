@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
-import { Share2, Check } from 'lucide-react';
+import { Share2, Check, Pencil } from 'lucide-react';
 import WorkoutCover from '../components/WorkoutCover';
 
 export default function WorkoutDetail() {
@@ -349,6 +349,15 @@ export default function WorkoutDetail() {
                 >
                   {copied ? <><Check size={13} /> Copied!</> : <><Share2 size={13} /> Copy link</>}
                 </button>
+              )}
+              {isCreator && (
+                <Link
+                  to={`/workout/${id}/edit`}
+                  className="btn-secondary flex items-center gap-1.5"
+                >
+                  <Pencil size={13} />
+                  Edit
+                </Link>
               )}
               {isCreator && (
                 <button

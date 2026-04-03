@@ -6,6 +6,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Home from './pages/Home';
 import CreateWorkout from './pages/CreateWorkout';
+import EditWorkout from './pages/EditWorkout';
 import WorkoutDetail from './pages/WorkoutDetail';
 import ProfilePage from './pages/ProfilePage';
 import EditProfile from './pages/EditProfile';
@@ -97,13 +98,21 @@ function AppRoutes() {
           } 
         />
         <Route path="/browse" element={<Navigate to="/" replace />} />
-        <Route 
-          path="/workout/:id" 
+        <Route
+          path="/workout/:id"
           element={
             <ProtectedRoute>
               <WorkoutDetail />
             </ProtectedRoute>
-          } 
+          }
+        />
+        <Route
+          path="/workout/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditWorkout />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/clubs"
