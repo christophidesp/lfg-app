@@ -7,6 +7,7 @@ import WorkoutMap from '../components/WorkoutMap';
 import PlacesAutocomplete from '../components/PlacesAutocomplete';
 import Avatar from '../components/Avatar';
 import WorkoutCover from '../components/WorkoutCover';
+import { WORKOUT_TYPES } from '../constants/workoutTypes';
 
 const SORT_OPTIONS = [
   { label: 'Date (soonest)', value: 'date_asc' },
@@ -269,15 +270,9 @@ export default function BrowseWorkouts() {
                 className="input-field"
               >
                 <option value="">All Types</option>
-                <option value="Easy Run">Easy Run</option>
-                <option value="Long Run">Long Run</option>
-                <option value="Tempo Run">Tempo Run</option>
-                <option value="Intervals">Intervals</option>
-                <option value="Recovery Run">Recovery Run</option>
-                <option value="Fartlek">Fartlek</option>
-                <option value="Hill Repeats">Hill Repeats</option>
-                <option value="Track Workout">Track Workout</option>
-                <option value="Race">Race</option>
+                {WORKOUT_TYPES.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
               </select>
             </div>
             <div>

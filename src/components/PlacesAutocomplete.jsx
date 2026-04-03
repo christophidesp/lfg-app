@@ -22,8 +22,13 @@ export default function PlacesAutocomplete({ value, onChange }) {
         await place.fetchFields({
           fields: ['displayName', 'formattedAddress', 'location'],
         });
+        const displayName = place.displayName || '';
+        const formattedAddress = place.formattedAddress || '';
+        const address = displayName && !formattedAddress.startsWith(displayName)
+          ? `${displayName}, ${formattedAddress}`
+          : formattedAddress;
         onChangeRef.current({
-          address: place.formattedAddress || '',
+          address,
           lat: place.location.lat(),
           lng: place.location.lng(),
         });

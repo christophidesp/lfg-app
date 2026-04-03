@@ -247,8 +247,9 @@ export default function WorkoutDetail() {
   const isCreator = workout.creator_id === user.id;
   const acceptedParticipants = participants.filter(p => p.status === 'accepted');
   const pendingParticipants = participants.filter(p => p.status === 'pending');
-  const isFull = acceptedParticipants.length >= workout.max_participants;
-  const spotsLeft = workout.max_participants - acceptedParticipants.length;
+  const hasMax = workout.max_participants != null;
+  const isFull = hasMax && acceptedParticipants.length >= workout.max_participants;
+  const spotsLeft = hasMax ? workout.max_participants - acceptedParticipants.length : null;
 
   return (
     <div className="min-h-screen bg-surface py-8">
@@ -267,9 +268,11 @@ export default function WorkoutDetail() {
                   <span className="badge-open">Open</span>
                 )}
               </div>
-              <span className="font-mono text-[12px] text-fg-secondary">
-                {acceptedParticipants.length}/{workout.max_participants}
-              </span>
+              {hasMax && (
+                <span className="font-mono text-[12px] text-fg-secondary">
+                  {acceptedParticipants.length}/{workout.max_participants}
+                </span>
+              )}
             </div>
             <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em]">{workout.name || workout.workout_type}</h1>
             <div className="flex items-center gap-2 mt-2">
@@ -310,15 +313,23 @@ export default function WorkoutDetail() {
           {/* Footer */}
           <div className="px-5 py-3.5 bg-surface-secondary border-t border-border flex items-center justify-between">
             <div className="flex-1 mr-4">
-              <div className="h-[2px] bg-border w-full">
-                <div
-                  className={`h-[2px] ${spotsLeft <= 1 ? 'bg-accent' : 'bg-fg'}`}
-                  style={{ width: `${(acceptedParticipants.length / workout.max_participants) * 100}%` }}
-                />
-              </div>
-              <p className="font-mono text-[10px] text-fg-secondary mt-1.5">
-                {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} left
-              </p>
+              {hasMax ? (
+                <>
+                  <div className="h-[2px] bg-border w-full">
+                    <div
+                      className={`h-[2px] ${spotsLeft <= 1 ? 'bg-accent' : 'bg-fg'}`}
+                      style={{ width: `${(acceptedParticipants.length / workout.max_participants) * 100}%` }}
+                    />
+                  </div>
+                  <p className="font-mono text-[10px] text-fg-secondary mt-1.5">
+                    {isFull ? 'Full' : `${spotsLeft} ${spotsLeft === 1 ? 'spot' : 'spots'} left`}
+                  </p>
+                </>
+              ) : (
+                <p className="font-mono text-[10px] text-fg-secondary">
+                  {acceptedParticipants.length} joined
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2">
               {isCreator && !inviteToken && (

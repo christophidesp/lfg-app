@@ -4,9 +4,8 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import Dashboard from './pages/Dashboard';
+import Home from './pages/Home';
 import CreateWorkout from './pages/CreateWorkout';
-import BrowseWorkouts from './pages/BrowseWorkouts';
 import WorkoutDetail from './pages/WorkoutDetail';
 import ProfilePage from './pages/ProfilePage';
 import EditProfile from './pages/EditProfile';
@@ -46,7 +45,7 @@ const PublicRoute = ({ children }) => {
     );
   }
 
-  return !user ? children : <Navigate to="/dashboard" />;
+  return !user ? children : <Navigate to="/home" />;
 };
 
 function AppRoutes() {
@@ -80,14 +79,15 @@ function AppRoutes() {
             </PublicRoute>
           } 
         />
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/home"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Home />
             </ProtectedRoute>
-          } 
+          }
         />
+        <Route path="/dashboard" element={<Navigate to="/home" replace />} />
         <Route 
           path="/create-workout" 
           element={
@@ -96,14 +96,7 @@ function AppRoutes() {
             </ProtectedRoute>
           } 
         />
-        <Route 
-          path="/browse" 
-          element={
-            <ProtectedRoute>
-              <BrowseWorkouts />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/browse" element={<Navigate to="/" replace />} />
         <Route 
           path="/workout/:id" 
           element={

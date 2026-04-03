@@ -1,37 +1,73 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import Avatar from '../components/Avatar';
+import { ChevronRight } from 'lucide-react';
+
+function spotsRemaining(workout) {
+  const accepted = (workout.workout_participants || []).filter(
+    (p) => p.status === 'accepted'
+  ).length;
+  return Math.max(0, (workout.max_participants || 5) - accepted);
+}
+
+function filterByPrivacy(workouts, isOwner, viewerClubIds) {
+  if (isOwner) return workouts;
+  return workouts.filter((w) => {
+    if (w.is_private) return false;
+    if (w.club_id) return viewerClubIds.includes(w.club_id);
+    return true;
+  });
+}
 
 export default function ProfilePage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
-  const [workouts, setWorkouts] = useState([]);
+  const [createdWorkouts, setCreatedWorkouts] = useState([]);
+  const [joinedWorkouts, setJoinedWorkouts] = useState([]);
+  const [viewerClubIds, setViewerClubIds] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const isOwnProfile = user?.id === id;
 
   useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [id, user?.id]);
 
   const fetchData = async () => {
     setLoading(true);
 
-    const [{ data: profileData }, { data: workoutsData }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', id).single(),
-      supabase
-        .from('workouts')
-        .select('*')
-        .eq('creator_id', id)
-        .order('workout_date', { ascending: false }),
-    ]);
+    const [{ data: profileData }, { data: created }, { data: joined }, { data: clubs }] =
+      await Promise.all([
+        supabase.from('profiles').select('*').eq('id', id).single(),
+        supabase
+          .from('workouts')
+          .select('*, workout_participants (id, status)')
+          .eq('creator_id', id)
+          .order('workout_date', { ascending: false }),
+        supabase
+          .from('workout_participants')
+          .select('*, workouts (*, workout_participants (id, status))')
+          .eq('user_id', id)
+          .eq('status', 'accepted')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('club_members')
+          .select('club_id')
+          .eq('user_id', user.id)
+          .eq('status', 'approved'),
+      ]);
 
     setProfile(profileData || null);
-    setWorkouts(workoutsData || []);
+    setCreatedWorkouts(created || []);
+    setJoinedWorkouts(
+      (joined || []).map((p) => p.workouts).filter(Boolean)
+    );
+    setViewerClubIds((clubs || []).map((c) => c.club_id));
     setLoading(false);
   };
 
@@ -39,6 +75,16 @@ export default function ProfilePage() {
     if (min == null && sec == null) return null;
     return `${min || 0}:${String(sec || 0).padStart(2, '0')}`;
   };
+
+  const filteredCreated = useMemo(
+    () => filterByPrivacy(createdWorkouts, isOwnProfile, viewerClubIds),
+    [createdWorkouts, isOwnProfile, viewerClubIds]
+  );
+
+  const filteredJoined = useMemo(
+    () => filterByPrivacy(joinedWorkouts, isOwnProfile, viewerClubIds),
+    [joinedWorkouts, isOwnProfile, viewerClubIds]
+  );
 
   if (loading) {
     return (
@@ -103,48 +149,115 @@ export default function ProfilePage() {
         </div>
 
         {/* Workouts created */}
-        <div className="border-t border-border-strong pt-6">
-          <p className="section-label">
-            {isOwnProfile ? 'Your Workouts' : `Workouts by ${profile.full_name || 'Runner'}`}
-          </p>
+        <WorkoutSection
+          title="Workouts created"
+          workouts={filteredCreated}
+          allHidden={!isOwnProfile && createdWorkouts.length > 0 && filteredCreated.length === 0}
+          onRowClick={(w) => navigate(`/workout/${w.id}`)}
+        />
 
-          {workouts.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="font-mono text-[13px] text-fg-secondary">No workouts created yet.</p>
+        {/* Workouts joined */}
+        <WorkoutSection
+          title="Workouts joined"
+          workouts={filteredJoined}
+          allHidden={!isOwnProfile && joinedWorkouts.length > 0 && filteredJoined.length === 0}
+          onRowClick={(w) => navigate(`/workout/${w.id}`)}
+        />
+      </div>
+    </div>
+  );
+}
+
+function WorkoutSection({ title, workouts, allHidden, onRowClick }) {
+  const upcoming = workouts.filter((w) => !isPast(new Date(w.workout_date)));
+  const past = workouts.filter((w) => isPast(new Date(w.workout_date)));
+
+  return (
+    <div className="border-t border-border-strong pt-6 mb-8">
+      <p className="section-label">{title}</p>
+
+      {allHidden ? (
+        <p className="font-mono text-[13px] text-fg-muted py-6">No public workouts yet.</p>
+      ) : workouts.length === 0 ? (
+        <p className="font-mono text-[13px] text-fg-muted py-6">No workouts yet.</p>
+      ) : (
+        <>
+          {upcoming.length > 0 && (
+            <div className="mb-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-muted mb-2">
+                Upcoming
+              </p>
+              <div className="border-t border-border">
+                {upcoming.map((w) => (
+                  <WorkoutRow key={w.id} workout={w} onClick={() => onRowClick(w)} />
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {workouts.map((workout) => (
-                <Link
-                  key={workout.id}
-                  to={`/workout/${workout.id}`}
-                  className="card hover:border-fg transition-colors"
-                >
-                  <div className="p-5 border-b border-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="badge-type">{workout.workout_type}</span>
-                    </div>
-                    <h3 className="font-sans text-[15px] font-medium">{workout.workout_type}</h3>
-                  </div>
-                  <div className="p-5 flex flex-col gap-2.5">
-                    <p className="font-mono text-[12px] text-fg-secondary">
-                      {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
-                    </p>
-                    <p className="font-mono text-[12px] text-fg-secondary">
-                      {workout.location}
-                    </p>
-                    {workout.description && (
-                      <p className="text-[13px] font-light text-fg-secondary line-clamp-2">
-                        {workout.description}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              ))}
+          )}
+          {past.length > 0 && (
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-muted mb-2">
+                Past
+              </p>
+              <div className="border-t border-border">
+                {past.map((w) => (
+                  <WorkoutRow key={w.id} workout={w} onClick={() => onRowClick(w)} />
+                ))}
+              </div>
             </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function WorkoutRow({ workout, onClick }) {
+  const spots = spotsRemaining(workout);
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-4 py-3 border-b border-border hover:bg-surface-secondary transition-colors text-left px-1"
+    >
+      <div className="flex-1 min-w-0">
+        <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-secondary mb-0.5">
+          {workout.workout_type}
+        </p>
+        <p className="text-[14px] font-medium text-fg truncate mb-1">
+          {workout.name || workout.workout_type}
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-mono text-[11px] text-fg-secondary">
+            {format(new Date(workout.workout_date), 'MMM d, yyyy · HH:mm')}
+          </span>
+          {workout.distance && (
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-fg-secondary border border-border px-2 py-[1px]">
+              {workout.distance} km
+            </span>
+          )}
+          {workout.pace && (
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-fg-secondary border border-border px-2 py-[1px]">
+              {workout.pace}/km
+            </span>
           )}
         </div>
       </div>
-    </div>
+
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <span
+          className={`font-mono text-[10px] uppercase tracking-[0.06em] ${
+            spots <= 0
+              ? 'text-fg-muted'
+              : spots <= 2
+              ? 'text-accent'
+              : 'text-[#4ADE80]'
+          }`}
+        >
+          {spots <= 0 ? 'Full' : `${spots} spot${spots !== 1 ? 's' : ''}`}
+        </span>
+        <ChevronRight size={14} className="text-fg-muted" />
+      </div>
+    </button>
   );
 }

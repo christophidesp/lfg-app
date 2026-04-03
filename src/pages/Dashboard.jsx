@@ -138,7 +138,7 @@ export default function Dashboard() {
               <p className="font-mono text-[13px] text-fg-secondary mb-4">
                 No workouts joined yet.
               </p>
-              <Link to="/browse" className="btn-primary">
+              <Link to="/" className="btn-primary">
                 Browse Available Workouts
               </Link>
             </div>

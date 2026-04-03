@@ -3,18 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import PlacesAutocomplete from '../components/PlacesAutocomplete';
-
-const WORKOUT_TYPES = [
-  'Easy Run',
-  'Long Run',
-  'Tempo Run',
-  'Intervals',
-  'Recovery Run',
-  'Fartlek',
-  'Hill Repeats',
-  'Track Workout',
-  'Race'
-];
+import { WORKOUT_TYPES } from '../constants/workoutTypes';
 
 export default function CreateWorkout() {
   const { user } = useAuth();
@@ -167,19 +156,23 @@ export default function CreateWorkout() {
             </div>
 
             <div>
-              <label htmlFor="workout_type" className="form-label">Workout Type *</label>
-              <select
-                id="workout_type"
-                name="workout_type"
-                required
-                value={formData.workout_type}
-                onChange={handleChange}
-                className="input-field"
-              >
-                {WORKOUT_TYPES.map(type => (
-                  <option key={type} value={type}>{type}</option>
+              <label className="form-label">Workout Type *</label>
+              <div className="flex flex-wrap gap-2">
+                {WORKOUT_TYPES.map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, workout_type: type }))}
+                    className={`font-mono text-[11px] uppercase tracking-[0.06em] px-3 py-2 border transition-colors ${
+                      formData.workout_type === type
+                        ? 'bg-accent text-[#0A0A0A] border-accent'
+                        : 'bg-transparent text-fg-secondary border-border hover:border-border-strong'
+                    }`}
+                  >
+                    {type}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
