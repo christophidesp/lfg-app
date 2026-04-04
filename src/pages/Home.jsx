@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { format, isToday, isTomorrow } from 'date-fns';
+import { format, isToday, isTomorrow, addDays, startOfDay } from 'date-fns';
 import { loadLibrary } from '../lib/googleMaps';
 import PlacesAutocomplete from '../components/PlacesAutocomplete';
 import Avatar from '../components/Avatar';
@@ -11,8 +11,7 @@ import { WORKOUT_TYPES } from '../constants/workoutTypes';
 
 const ALL_CHIPS = ['All', ...WORKOUT_TYPES];
 
-const NEAR_RADIUS_DEFAULT = 10;
-const NEAR_RADIUS_EXPANDED = 25;
+const NEAR_RADIUS = 50;
 
 function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -167,47 +166,30 @@ export default function Home() {
     return withDistance.filter((w) => w.workout_type === activeChip);
   }, [withDistance, activeChip]);
 
-  // Near you cards — radius-filtered, sorted by distance
-  const nearYouResult = useMemo(() => {
-    if (!hasLocation) return { cards: [], radiusNote: null };
-
-    const withDist = filtered.filter((w) => w._distance !== null);
-    const sorted = [...withDist].sort((a, b) => a._distance - b._distance);
-
-    const within10 = sorted.filter((w) => w._distance <= NEAR_RADIUS_DEFAULT);
-    if (within10.length > 0) {
-      return { cards: within10.slice(0, 10), radiusNote: null };
+  // Unified workout list
+  const unifiedList = useMemo(() => {
+    if (hasLocation) {
+      // State A: filter to workouts with geo within 50km, sort by distance then date
+      return filtered
+        .filter((w) => w._distance !== null && w._distance <= NEAR_RADIUS)
+        .sort((a, b) => {
+          if (a._distance !== b._distance) return a._distance - b._distance;
+          return new Date(a.workout_date) - new Date(b.workout_date);
+        });
     }
-
-    const within25 = sorted.filter((w) => w._distance <= NEAR_RADIUS_EXPANDED);
-    if (within25.length > 0) {
-      return {
-        cards: within25.slice(0, 10),
-        radiusNote: `No workouts within ${NEAR_RADIUS_DEFAULT} km — showing results within ${NEAR_RADIUS_EXPANDED} km`,
-      };
-    }
-
-    return { cards: [], radiusNote: 'none' };
+    // State B: workouts within next 7 days, sorted by date
+    const cutoff = addDays(startOfDay(new Date()), 7);
+    return [...filtered]
+      .filter((w) => new Date(w.workout_date) < cutoff)
+      .sort((a, b) => new Date(a.workout_date) - new Date(b.workout_date));
   }, [filtered, hasLocation]);
 
-  // Upcoming workouts list — sorted by date then distance
-  const upcomingList = useMemo(() => {
-    return [...filtered].sort((a, b) => {
-      const dateA = new Date(a.workout_date);
-      const dateB = new Date(b.workout_date);
-      if (dateA.getTime() !== dateB.getTime()) return dateA - dateB;
-      if (hasLocation && a._distance !== null && b._distance !== null) {
-        return a._distance - b._distance;
-      }
-      return 0;
-    });
-  }, [filtered, hasLocation]);
-
-  // Group upcoming by date
-  const groupedUpcoming = useMemo(() => {
+  // Group by date (State B only)
+  const groupedList = useMemo(() => {
+    if (hasLocation) return [];
     const groups = [];
     let currentKey = '';
-    for (const w of upcomingList) {
+    for (const w of unifiedList) {
       const dateKey = format(new Date(w.workout_date), 'yyyy-MM-dd');
       if (dateKey !== currentKey) {
         currentKey = dateKey;
@@ -216,7 +198,7 @@ export default function Home() {
       groups[groups.length - 1].items.push(w);
     }
     return groups;
-  }, [upcomingList]);
+  }, [unifiedList, hasLocation]);
 
   const handlePlaceSelect = useCallback(({ address, lat, lng }) => {
     if (lat != null && lng != null) {
@@ -335,68 +317,61 @@ export default function Home() {
         )}
         <div className="pb-4" />
 
-        {/* Near you section — hidden when a search location is active */}
-        {!searchLocation && (
-          <section className="mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-mono text-[11px] uppercase tracking-[0.12em] text-fg-secondary">
-                Near you
-              </h2>
-              {hasLocation && geoWorkouts.length > 0 && (
-                <button
-                  onClick={() => setShowMap(true)}
-                  className="font-mono text-[11px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
-                >
-                  See map →
-                </button>
-              )}
-            </div>
-
-            {!locationGranted && !locationRequested ? (
-              <NearYouBanner onAllow={requestLocation} />
-            ) : !locationGranted && locationRequested ? (
-              <NearYouBanner onAllow={requestLocation} denied />
-            ) : nearYouResult.radiusNote === 'none' ? (
-              <p className="text-[13px] text-fg-muted font-light">
-                No workouts near you right now.
-              </p>
-            ) : (
-              <>
-                {nearYouResult.radiusNote && (
-                  <p className="font-mono text-[11px] text-fg-muted mb-3">
-                    {nearYouResult.radiusNote}
-                  </p>
-                )}
-                <div className="flex gap-3 overflow-x-auto -mx-6 px-6 pb-2 scrollbar-hide">
-                  {nearYouResult.cards.map((w) => (
-                    <NearYouCard key={w.id} workout={w} onClick={() => navigate(`/workout/${w.id}`)} />
-                  ))}
-                </div>
-              </>
-            )}
-          </section>
-        )}
-
-        {/* Upcoming workouts */}
+        {/* Unified workout list */}
         <section>
-          <h2 className="font-mono text-[11px] uppercase tracking-[0.12em] text-fg-secondary mb-4">
-            Upcoming workouts
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.12em] text-fg-secondary">
+              {hasLocation
+                ? searchLocation
+                  ? `Workouts near ${searchLabel}`
+                  : 'Workouts near you'
+                : 'Upcoming workouts'}
+            </h2>
+            {hasLocation && geoWorkouts.length > 0 && (
+              <button
+                onClick={() => setShowMap(true)}
+                className="font-mono text-[11px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors"
+              >
+                See map →
+              </button>
+            )}
+          </div>
+
+          {/* Location prompt banner (State B only) */}
+          {!hasLocation && (
+            !locationGranted && !locationRequested ? (
+              <LocationBanner onAllow={requestLocation} />
+            ) : !locationGranted && locationRequested ? (
+              <LocationBanner onAllow={requestLocation} denied />
+            ) : null
+          )}
 
           {loading ? (
             <p className="text-[13px] text-fg-muted font-light">Loading workouts…</p>
-          ) : groupedUpcoming.length === 0 ? (
+          ) : unifiedList.length === 0 ? (
             <p className="text-[13px] text-fg-muted font-light">
-              No upcoming workouts found.
+              {hasLocation
+                ? 'No upcoming workouts within 50 km'
+                : 'No upcoming workouts this week'}
             </p>
-          ) : (
+          ) : hasLocation ? (
+            /* State A: flat list sorted by distance, date as pill */
             <div className="flex flex-col">
-              {searchLocation && (
-                <p className="font-mono text-[11px] text-fg-muted italic mb-2">
-                  Showing all upcoming workouts · sorted by distance from {searchLabel}
-                </p>
-              )}
-              {groupedUpcoming.map((group) => (
+              <div className="border-t border-border" />
+              {unifiedList.map((w) => (
+                <WorkoutRow
+                  key={w.id}
+                  workout={w}
+                  hasLocation={hasLocation}
+                  showDate
+                  onClick={() => navigate(`/workout/${w.id}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            /* State B: grouped by date */
+            <div className="flex flex-col">
+              {groupedList.map((group) => (
                 <div key={group.dateKey}>
                   <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-fg-muted pt-4 pb-2">
                     {group.label}
@@ -454,14 +429,14 @@ function ChipButton({ label, active, onClick }) {
   );
 }
 
-function NearYouBanner({ onAllow, denied }) {
+function LocationBanner({ onAllow, denied }) {
   return (
-    <div className="border border-border p-5">
+    <div className="border border-border p-5 mb-4">
       <p className="text-[14px] font-medium mb-1">
-        Enable location for nearby workouts
+        See workouts near you
       </p>
       <p className="text-[12px] text-fg-secondary font-light mb-4">
-        See runs happening close to you first.
+        Enable location to find runs within 50 km.
       </p>
       <button onClick={onAllow} className="btn-secondary text-[11px] px-4 py-2">
         {denied ? 'Retry location' : 'Allow location'}
@@ -470,52 +445,11 @@ function NearYouBanner({ onAllow, denied }) {
   );
 }
 
-function NearYouCard({ workout, onClick }) {
-  const spots = spotsRemaining(workout);
-  const dateTime = format(new Date(workout.workout_date), 'EEE d MMM · HH:mm').toUpperCase();
-
-  return (
-    <button
-      onClick={onClick}
-      className="w-[168px] flex-shrink-0 border border-border bg-surface text-left p-4 hover:border-border-strong transition-colors"
-    >
-      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fg tabular-nums mb-1.5">
-        {dateTime}
-      </p>
-      <p className="text-[13px] font-medium text-fg mb-1.5 leading-tight line-clamp-2">
-        {workout.name || workout.workout_type}
-      </p>
-      <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-muted mb-2">
-        {workout.workout_type}
-      </p>
-      <div className="flex items-center gap-1.5 flex-wrap font-mono text-[10px] text-fg-muted mb-2">
-        {workout.distance && <span>{workout.distance} km</span>}
-        {workout.pace && <span>· {workout.pace}/km</span>}
-        {workout._distance !== null && (
-          <span>
-            · {workout._distance < 1
-              ? `${(workout._distance * 1000).toFixed(0)} m away`
-              : `${workout._distance.toFixed(1)} km away`}
-          </span>
-        )}
-      </div>
-      <span
-        className={`font-mono text-[10px] uppercase tracking-[0.08em] px-2 py-[2px] inline-block ${
-          spots <= 0
-            ? 'bg-surface-secondary text-fg-muted border border-border'
-            : spots <= 2
-            ? 'bg-accent text-[#0A0A0A] border border-accent'
-            : 'bg-accent text-[#0A0A0A] border border-accent'
-        }`}
-      >
-        {spots <= 0 ? 'Full' : `${spots} spot${spots !== 1 ? 's' : ''} left`}
-      </span>
-    </button>
-  );
-}
-
-function WorkoutRow({ workout, hasLocation, onClick }) {
+function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
   const time = format(new Date(workout.workout_date), 'HH:mm');
+  const dateLabel = showDate
+    ? format(new Date(workout.workout_date), 'EEE d MMM').toUpperCase()
+    : null;
   const spots = spotsRemaining(workout);
   const hostName = formatHostName(workout.profiles?.full_name);
 
@@ -525,9 +459,11 @@ function WorkoutRow({ workout, hasLocation, onClick }) {
       className="w-full flex items-center gap-4 py-3 border-b border-border hover:bg-surface-secondary transition-colors text-left px-1"
     >
       {/* Time */}
-      <span className="font-mono text-[16px] font-medium text-fg w-[52px] flex-shrink-0 tabular-nums">
-        {time}
-      </span>
+      <div className="flex-shrink-0 w-[52px]">
+        <span className="font-mono text-[16px] font-medium text-fg tabular-nums">
+          {time}
+        </span>
+      </div>
 
       {/* Main content */}
       <div className="flex-1 min-w-0">
@@ -538,6 +474,11 @@ function WorkoutRow({ workout, hasLocation, onClick }) {
           {workout.name || workout.workout_type}
         </p>
         <div className="flex items-center gap-2 flex-wrap">
+          {dateLabel && (
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-fg-muted border border-border px-2 py-[1px]">
+              {dateLabel}
+            </span>
+          )}
           {workout.distance && (
             <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-fg-secondary border border-border px-2 py-[1px]">
               {workout.distance} km
