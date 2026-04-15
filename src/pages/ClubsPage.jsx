@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { useGeolocation } from '../hooks/useGeolocation';
 
 function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -16,10 +17,10 @@ function haversineDistance(lat1, lng1, lat2, lng2) {
 
 export default function ClubsPage() {
   const { user } = useAuth();
+  const { location: userLocation } = useGeolocation();
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [userLocation, setUserLocation] = useState(null);
   const [maxDistance, setMaxDistance] = useState(51); // 51 = "Any"
 
   useEffect(() => {
@@ -39,21 +40,6 @@ export default function ClubsPage() {
       setLoading(false);
     };
     fetchClubs();
-  }, []);
-
-  // Request geolocation (same pattern as Home)
-  useEffect(() => {
-    if (!navigator.permissions) return;
-    navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-      if (result.state === 'granted' || result.state === 'prompt') {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          },
-          () => {}
-        );
-      }
-    });
   }, []);
 
   const getMemberCount = (club) => {

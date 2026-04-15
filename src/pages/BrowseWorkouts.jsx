@@ -8,6 +8,7 @@ import PlacesAutocomplete from '../components/PlacesAutocomplete';
 import Avatar from '../components/Avatar';
 import WorkoutCover from '../components/WorkoutCover';
 import { WORKOUT_TYPES } from '../constants/workoutTypes';
+import { useGeolocation } from '../hooks/useGeolocation';
 
 const SORT_OPTIONS = [
   { label: 'Date (soonest)', value: 'date_asc' },
@@ -28,11 +29,10 @@ function haversineDistance(lat1, lng1, lat2, lng2) {
 
 export default function BrowseWorkouts() {
   const { user } = useAuth();
+  const { location: geoLocation } = useGeolocation();
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('list');
-  const [userLocation, setUserLocation] = useState(null);
-  const [locationDenied, setLocationDenied] = useState(false);
   const [searchLocation, setSearchLocation] = useState(null);
   const [autocompleteKey, setAutocompleteKey] = useState(0);
   const [showPast, setShowPast] = useState(false);
@@ -65,22 +65,6 @@ export default function BrowseWorkouts() {
     };
     fetchUserClubs();
   }, [user.id]);
-
-  // Request user location on mount
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocationDenied(true);
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      },
-      () => {
-        setLocationDenied(true);
-      }
-    );
-  }, []);
 
   useEffect(() => {
     fetchWorkouts();
@@ -182,7 +166,7 @@ export default function BrowseWorkouts() {
     return workout.workout_participants?.filter(p => p.status === 'accepted').length || 0;
   };
 
-  const effectiveCenter = searchLocation || userLocation;
+  const effectiveCenter = searchLocation || geoLocation;
 
   const getDistance = (workout) => {
     if (!effectiveCenter || workout.lat == null || workout.lng == null) return null;

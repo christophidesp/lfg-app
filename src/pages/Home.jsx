@@ -8,6 +8,7 @@ import PlacesAutocomplete from '../components/PlacesAutocomplete';
 import Avatar from '../components/Avatar';
 import { X, ChevronRight } from 'lucide-react';
 import { WORKOUT_TYPES } from '../constants/workoutTypes';
+import { useGeolocation } from '../hooks/useGeolocation';
 
 const ALL_CHIPS = ['All', ...WORKOUT_TYPES];
 
@@ -48,11 +49,9 @@ function formatDateDivider(dateStr) {
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { location: geoLocation, status: geoStatus, refresh: refreshLocation } = useGeolocation();
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userLocation, setUserLocation] = useState(null);
-  const [locationGranted, setLocationGranted] = useState(false);
-  const [locationRequested, setLocationRequested] = useState(false);
   const [searchLocation, setSearchLocation] = useState(null);
   const [searchLabel, setSearchLabel] = useState('');
   const [activeChip, setActiveChip] = useState('All');
@@ -61,19 +60,6 @@ export default function Home() {
   const [showMap, setShowMap] = useState(false);
   const chipRowRef = useRef(null);
   const chipMeasureRef = useRef(null);
-
-  // Check if location was previously granted
-  useEffect(() => {
-    if (navigator.permissions) {
-      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-        if (result.state === 'granted') {
-          requestLocation();
-        } else if (result.state === 'denied') {
-          setLocationRequested(true);
-        }
-      });
-    }
-  }, []);
 
   // Fetch workouts
   useEffect(() => {
@@ -136,20 +122,7 @@ export default function Home() {
   const overflowChips = ALL_CHIPS.slice(visibleCount);
   const hasOverflow = overflowChips.length > 0;
 
-  const requestLocation = useCallback(() => {
-    setLocationRequested(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setLocationGranted(true);
-      },
-      () => {
-        setLocationGranted(false);
-      }
-    );
-  }, []);
-
-  const origin = searchLocation || userLocation;
+  const origin = searchLocation || geoLocation;
   const hasLocation = !!origin;
 
   const withDistance = useMemo(() => {
@@ -261,10 +234,12 @@ export default function Home() {
                 Clear ×
               </button>
             </div>
-          ) : locationGranted && userLocation ? (
+          ) : geoLocation && !searchLocation ? (
             <div className="border-y border-border py-1.5 px-5 -mx-6 mt-3">
               <span className="font-mono text-[11px] text-fg-muted">
-                Using your current location
+                {geoStatus === 'cached' || geoStatus === 'refreshing'
+                  ? 'Using your last known location'
+                  : 'Using your current location'}
               </span>
             </div>
           ) : null}
@@ -322,11 +297,13 @@ export default function Home() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-mono text-[11px] uppercase tracking-[0.12em] text-fg-secondary">
-              {hasLocation
-                ? searchLocation
-                  ? `Workouts near ${searchLabel}`
-                  : 'Workouts near you'
-                : 'Upcoming workouts'}
+              {geoStatus === 'loading' && !geoLocation
+                ? 'Finding nearby workouts\u2026'
+                : hasLocation
+                  ? searchLocation
+                    ? `Workouts near ${searchLabel}`
+                    : 'Workouts near you'
+                  : 'Upcoming workouts'}
             </h2>
             {hasLocation && geoWorkouts.length > 0 && (
               <button
@@ -338,13 +315,9 @@ export default function Home() {
             )}
           </div>
 
-          {/* Location prompt banner (State B only) */}
-          {!hasLocation && (
-            !locationGranted && !locationRequested ? (
-              <LocationBanner onAllow={requestLocation} />
-            ) : !locationGranted && locationRequested ? (
-              <LocationBanner onAllow={requestLocation} denied />
-            ) : null
+          {/* Location prompt banner — only when we have no usable location */}
+          {!geoLocation && !searchLocation && (geoStatus === 'idle' || geoStatus === 'error' || geoStatus === 'unsupported') && (
+            <LocationBanner onAllow={refreshLocation} denied={geoStatus === 'error'} />
           )}
 
           {loading ? (
