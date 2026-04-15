@@ -279,6 +279,7 @@ export default function EditWorkout() {
                 </p>
               )}
               <PlacesAutocomplete
+                telemetryName="EditWorkout"
                 value={formData.location}
                 onChange={handleLocationChange}
               />

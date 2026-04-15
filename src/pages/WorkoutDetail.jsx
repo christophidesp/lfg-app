@@ -12,6 +12,7 @@ export default function WorkoutDetail() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [workout, setWorkout] = useState(null);
+  const [race, setRace] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,18 @@ export default function WorkoutDetail() {
 
     if (workoutData) {
       setWorkout(workoutData);
+
+      // Fetch linked race if present
+      if (workoutData.race_id) {
+        const { data: raceData } = await supabase
+          .from('races')
+          .select('*')
+          .eq('id', workoutData.race_id)
+          .single();
+        setRace(raceData || null);
+      } else {
+        setRace(null);
+      }
 
       const { data: participantsData } = await supabase
         .from('workout_participants')
@@ -370,6 +383,37 @@ export default function WorkoutDetail() {
             </div>
           </div>
         </div>
+
+        {/* Race Info Card */}
+        {race && (
+          <div className="border border-border border-l-[2px] border-l-accent p-5 mb-6" style={{ borderTopWidth: '0.5px', borderRightWidth: '0.5px', borderBottomWidth: '0.5px' }}>
+            <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-muted mb-1">Linked Race</p>
+            <h3 className="font-sans text-[18px] font-medium text-fg mb-2">{race.name}</h3>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {race.distance_label && (
+                <span className="font-mono text-[12px] text-fg-secondary">{race.distance_label}</span>
+              )}
+              {race.date && (
+                <span className="font-mono text-[12px] text-fg-secondary">
+                  {new Date(race.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              )}
+              {race.location && (
+                <span className="font-mono text-[12px] text-fg-secondary">{race.location}</span>
+              )}
+            </div>
+            {race.url && (
+              <a
+                href={race.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block font-mono text-[11px] text-accent hover:underline mt-3"
+              >
+                Race website &rarr;
+              </a>
+            )}
+          </div>
+        )}
 
         {/* Join Actions */}
         {!isCreator && (

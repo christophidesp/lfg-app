@@ -1,7 +1,18 @@
+/**
+ * COST AUDIT NOTE
+ * To verify session token reuse:
+ * 1. Open DevTools -> Network tab -> filter "places.googleapis.com"
+ * 2. Type in the autocomplete, then select a result
+ * 3. All Autocomplete requests + the final Details request should share
+ *    the same `sessionToken` query parameter
+ * 4. If tokens differ between keystrokes, billing is per-request (bad)
+ */
 import { useEffect, useRef } from 'react';
 import { loadLibrary } from '../lib/googleMaps';
+import { usePlacesTelemetry } from '../hooks/usePlacesTelemetry';
 
-export default function PlacesAutocomplete({ value, onChange }) {
+export default function PlacesAutocomplete({ value, onChange, telemetryName = 'PlacesAutocomplete' }) {
+  usePlacesTelemetry(telemetryName);
   const containerRef = useRef(null);
   const elementRef = useRef(null);
   const onChangeRef = useRef(onChange);
@@ -18,6 +29,13 @@ export default function PlacesAutocomplete({ value, onChange }) {
       const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement();
 
       placeAutocomplete.addEventListener('gmp-select', async ({ placePrediction }) => {
+        if (import.meta.env.DEV) {
+          console.log(
+            '%c[Places] SELECT',
+            'color: #4ade80; font-weight: 500;',
+            { placeId: placePrediction?.placeId, text: placePrediction?.text?.toString() }
+          );
+        }
         const place = placePrediction.toPlace();
         await place.fetchFields({
           fields: ['displayName', 'formattedAddress', 'location'],

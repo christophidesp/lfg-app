@@ -84,7 +84,8 @@ export default function Home() {
         .select(`
           *,
           profiles!creator_id (id, full_name, avatar_url),
-          workout_participants (id, status)
+          workout_participants (id, status),
+          races (name)
         `)
         .gte('workout_date', new Date().toISOString())
         .eq('visibility', 'public')
@@ -244,7 +245,7 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <PlacesAutocomplete onChange={handlePlaceSelect} />
+            <PlacesAutocomplete onChange={handlePlaceSelect} telemetryName="Home" />
           )}
 
           {/* Context bar */}
@@ -458,8 +459,13 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
       onClick={onClick}
       className="w-full flex items-center gap-4 py-3 border-b border-border hover:bg-surface-secondary transition-colors text-left px-1"
     >
-      {/* Time */}
-      <div className="flex-shrink-0 w-[52px]">
+      {/* Date + Time */}
+      <div className="flex-shrink-0 w-[76px]">
+        {dateLabel && (
+          <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-fg-muted mb-0.5">
+            {dateLabel}
+          </p>
+        )}
         <span className="font-mono text-[16px] font-medium text-fg tabular-nums">
           {time}
         </span>
@@ -470,15 +476,15 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
         <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-fg-secondary mb-0.5">
           {workout.workout_type}
         </p>
-        <p className="text-[14px] font-medium text-fg truncate mb-1">
+        <p className="text-[14px] font-medium text-fg truncate mb-0.5">
           {workout.name || workout.workout_type}
         </p>
+        {workout.workout_type === 'Race' && workout.races?.name && (
+          <p className="font-mono text-[11px] font-normal text-fg-muted truncate mb-1">
+            {workout.races.name}
+          </p>
+        )}
         <div className="flex items-center gap-2 flex-wrap">
-          {dateLabel && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-fg-muted border border-border px-2 py-[1px]">
-              {dateLabel}
-            </span>
-          )}
           {workout.distance && (
             <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-fg-secondary border border-border px-2 py-[1px]">
               {workout.distance} km

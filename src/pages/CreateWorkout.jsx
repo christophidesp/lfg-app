@@ -30,7 +30,14 @@ export default function CreateWorkout() {
     visibility: 'public',
     club_id: '',
     name: '',
+    race_id: '',
   });
+
+  // Race search state
+  const [raceSearch, setRaceSearch] = useState('');
+  const [raceResults, setRaceResults] = useState([]);
+  const [selectedRace, setSelectedRace] = useState(null);
+  const [raceDropdownOpen, setRaceDropdownOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserClubs = async () => {
@@ -55,6 +62,52 @@ export default function CreateWorkout() {
   const handleLocationChange = useCallback(({ address, lat, lng }) => {
     setFormData(prev => ({ ...prev, location: address, lat, lng }));
   }, []);
+
+  // Search races when input changes
+  useEffect(() => {
+    if (formData.workout_type !== 'Race') return;
+    if (raceSearch.length < 1) {
+      // Show all races when search is empty
+      const fetchAll = async () => {
+        const { data } = await supabase
+          .from('races')
+          .select('*')
+          .order('date', { ascending: true })
+          .limit(20);
+        setRaceResults(data || []);
+      };
+      fetchAll();
+      return;
+    }
+    const timer = setTimeout(async () => {
+      const { data } = await supabase
+        .from('races')
+        .select('*')
+        .ilike('name', `%${raceSearch}%`)
+        .order('date', { ascending: true })
+        .limit(10);
+      setRaceResults(data || []);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [raceSearch, formData.workout_type]);
+
+  const handleSelectRace = (race) => {
+    setSelectedRace(race);
+    setFormData(prev => ({
+      ...prev,
+      race_id: race.id,
+      distance: race.distance_km ? String(race.distance_km) : prev.distance,
+    }));
+    setRaceSearch(race.name);
+    setRaceDropdownOpen(false);
+  };
+
+  const handleClearRace = () => {
+    setSelectedRace(null);
+    setFormData(prev => ({ ...prev, race_id: '' }));
+    setRaceSearch('');
+    setRaceDropdownOpen(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -111,6 +164,7 @@ export default function CreateWorkout() {
             visibility: formData.visibility,
             club_id: formData.visibility === 'club' ? formData.club_id || null : null,
             name: formData.name || null,
+            race_id: formData.race_id || null,
             image_url,
           }
         ])
@@ -175,6 +229,72 @@ export default function CreateWorkout() {
               </div>
             </div>
 
+            {formData.workout_type === 'Race' && (
+              <div>
+                <label className="form-label">Link a Race</label>
+                {selectedRace ? (
+                  <div className="border border-border p-3 flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-mono text-[13px] text-fg font-medium truncate">{selectedRace.name}</p>
+                      <p className="font-mono text-[11px] text-fg-secondary">
+                        {selectedRace.distance_label}
+                        {selectedRace.date && ` · ${new Date(selectedRace.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`}
+                        {selectedRace.location && ` · ${selectedRace.location}`}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClearRace}
+                      className="btn-secondary text-[11px] px-3 py-1 flex-shrink-0 ml-3"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={raceSearch}
+                      onChange={(e) => { setRaceSearch(e.target.value); setRaceDropdownOpen(true); }}
+                      onFocus={() => setRaceDropdownOpen(true)}
+                      className="input-field"
+                      placeholder="Search races..."
+                    />
+                    {raceDropdownOpen && (
+                      <div className="absolute z-30 left-0 right-0 top-full mt-0 border border-border bg-surface max-h-[240px] overflow-y-auto">
+                        <button
+                          type="button"
+                          onClick={handleClearRace}
+                          className="w-full text-left px-3 py-2.5 font-mono text-[12px] text-fg-muted hover:bg-surface-secondary transition-colors border-b border-border"
+                        >
+                          None — custom race
+                        </button>
+                        {raceResults.map((race) => (
+                          <button
+                            key={race.id}
+                            type="button"
+                            onClick={() => handleSelectRace(race)}
+                            className="w-full text-left px-3 py-2.5 hover:bg-surface-secondary transition-colors border-b border-border"
+                          >
+                            <p className="font-mono text-[12px] text-fg font-medium">{race.name}</p>
+                            <p className="font-mono text-[10px] text-fg-secondary">
+                              {race.distance_label || ''}
+                              {race.date && ` · ${new Date(race.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`}
+                              {race.location && ` · ${race.location}`}
+                            </p>
+                          </button>
+                        ))}
+                        {raceResults.length === 0 && raceSearch && (
+                          <p className="px-3 py-2.5 font-mono text-[11px] text-fg-muted">No races found</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <p className="font-mono text-[10px] text-fg-muted mt-1">Optional — link an official race to this workout.</p>
+              </div>
+            )}
+
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="workout_date" className="form-label">Date *</label>
@@ -205,6 +325,7 @@ export default function CreateWorkout() {
             <div>
               <label htmlFor="location" className="form-label">Location *</label>
               <PlacesAutocomplete
+                telemetryName="CreateWorkout"
                 value={formData.location}
                 onChange={handleLocationChange}
               />

@@ -278,6 +278,7 @@ export default function BrowseWorkouts() {
             <div>
               <label className="form-label">Location</label>
               <PlacesAutocomplete
+                telemetryName="BrowseWorkouts"
                 key={autocompleteKey}
                 value={filters.location}
                 onChange={handleLocationSelect}
@@ -507,9 +508,14 @@ export default function BrowseWorkouts() {
 
                       {/* Body */}
                       <div className="p-5 flex flex-col gap-2.5">
-                        <p className="font-mono text-[12px] text-fg-secondary">
-                          {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
-                        </p>
+                        <div>
+                          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-fg-muted">
+                            {format(new Date(workout.workout_date), 'EEE, MMM d, yyyy')}
+                          </p>
+                          <p className="font-mono text-[13px] text-fg-secondary">
+                            {format(new Date(workout.workout_date), 'h:mm a')}
+                          </p>
+                        </div>
                         <p className="font-mono text-[12px] text-fg-secondary">
                           {workout.location}
                         </p>

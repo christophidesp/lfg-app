@@ -17,6 +17,7 @@ import ClubDetail from './pages/ClubDetail';
 import ClubSettings from './pages/ClubSettings';
 import InvitePage from './pages/InvitePage';
 import ClubInvitePage from './pages/ClubInvitePage';
+import Calendar from './pages/Calendar';
 import Navbar from './components/Navbar';
 
 // Protected route wrapper
@@ -111,6 +112,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <EditWorkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
+            <ProtectedRoute>
+              <Calendar />
             </ProtectedRoute>
           }
         />

@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import Avatar from '../components/Avatar';
-import { Share2, Check, RotateCcw } from 'lucide-react';
+import PlacesAutocomplete from '../components/PlacesAutocomplete';
+import { Share2, Check, RotateCcw, MapPin, X } from 'lucide-react';
 
 export default function ClubSettings() {
   const { id } = useParams();
@@ -16,6 +17,9 @@ export default function ClubSettings() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({ name: '', description: '', workout_creation: 'admins' });
+  const [location, setLocation] = useState({ address: '', lat: null, lng: null });
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [autocompleteKey, setAutocompleteKey] = useState(0);
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -46,6 +50,11 @@ export default function ClubSettings() {
       name: clubData.name,
       description: clubData.description || '',
       workout_creation: clubData.workout_creation || 'admins',
+    });
+    setLocation({
+      address: clubData.address || '',
+      lat: clubData.lat || null,
+      lng: clubData.lng || null,
     });
     setAvatarPreview(clubData.avatar_url);
 
@@ -156,6 +165,9 @@ export default function ClubSettings() {
           description: formData.description || null,
           avatar_url,
           workout_creation: formData.workout_creation,
+          address: location.address || null,
+          lat: location.lat,
+          lng: location.lng,
         })
         .eq('id', id);
 
@@ -245,6 +257,52 @@ export default function ClubSettings() {
                 onChange={handleChange}
                 className="input-field"
               />
+            </div>
+
+            <div>
+              <label className="form-label">Location</label>
+              {location.address && !editingLocation ? (
+                <div className="flex items-center gap-2">
+                  <MapPin size={14} className="text-fg-muted flex-shrink-0" />
+                  <span className="font-mono text-[12px] text-fg-secondary flex-1 truncate">{location.address}</span>
+                  <button
+                    type="button"
+                    onClick={() => { setEditingLocation(true); setAutocompleteKey(k => k + 1); }}
+                    className="btn-secondary text-[11px] px-3 py-1 flex-shrink-0"
+                  >
+                    Change
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setLocation({ address: '', lat: null, lng: null }); setEditingLocation(false); }}
+                    className="btn-decline text-[11px] px-3 py-1 flex-shrink-0"
+                  >
+                    Clear
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <PlacesAutocomplete
+                    telemetryName="ClubSettings"
+                    key={autocompleteKey}
+                    value=""
+                    onChange={({ address, lat, lng }) => {
+                      setLocation({ address, lat, lng });
+                      setEditingLocation(false);
+                    }}
+                  />
+                  {editingLocation && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingLocation(false)}
+                      className="font-mono text-[11px] text-fg-muted hover:text-fg mt-1"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  <p className="font-mono text-[10px] text-fg-muted mt-1">Optional — helps runners find your club by distance.</p>
+                </div>
+              )}
             </div>
 
             <div>

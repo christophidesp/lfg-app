@@ -112,9 +112,14 @@ export default function Dashboard() {
                     <h3 className="font-sans text-[15px] font-medium">{workout.name || workout.workout_type}</h3>
                   </div>
                   <div className="p-5 flex flex-col gap-2.5">
-                    <p className="font-mono text-[12px] text-fg-secondary">
-                      {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
-                    </p>
+                    <div>
+                      <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-fg-muted">
+                        {format(new Date(workout.workout_date), 'EEE, MMM d, yyyy')}
+                      </p>
+                      <p className="font-mono text-[13px] text-fg-secondary">
+                        {format(new Date(workout.workout_date), 'h:mm a')}
+                      </p>
+                    </div>
                     <p className="font-mono text-[12px] text-fg-secondary">
                       {workout.location}
                     </p>

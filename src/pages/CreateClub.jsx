@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import PlacesAutocomplete from '../components/PlacesAutocomplete';
 
 export default function CreateClub() {
   const { user } = useAuth();
@@ -13,6 +14,7 @@ export default function CreateClub() {
     description: '',
     workout_creation: 'admins',
   });
+  const [location, setLocation] = useState({ address: '', lat: null, lng: null });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
 
@@ -60,6 +62,9 @@ export default function CreateClub() {
           avatar_url,
           created_by: user.id,
           workout_creation: formData.workout_creation,
+          address: location.address || null,
+          lat: location.lat,
+          lng: location.lng,
         }])
         .select()
         .single();
@@ -126,6 +131,29 @@ export default function CreateClub() {
                 className="input-field"
                 placeholder="What's your club about?"
               />
+            </div>
+
+            <div>
+              <label className="form-label">Location</label>
+              {location.address ? (
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[12px] text-fg-secondary flex-1 truncate">{location.address}</span>
+                  <button
+                    type="button"
+                    onClick={() => setLocation({ address: '', lat: null, lng: null })}
+                    className="btn-secondary text-[11px] px-3 py-1 flex-shrink-0"
+                  >
+                    Clear
+                  </button>
+                </div>
+              ) : (
+                <PlacesAutocomplete
+                  telemetryName="CreateClub"
+                  value=""
+                  onChange={({ address, lat, lng }) => setLocation({ address, lat, lng })}
+                />
+              )}
+              <p className="font-mono text-[10px] text-fg-muted mt-1">Optional — helps runners find your club by distance.</p>
             </div>
 
             <div>

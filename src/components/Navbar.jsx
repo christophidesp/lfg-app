@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import { supabase } from '../lib/supabase';
-import { Bell } from 'lucide-react';
+import { Bell, CalendarDays } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Avatar from './Avatar';
 
@@ -37,6 +37,7 @@ export default function Navbar() {
 
   const isHome = location.pathname === '/' || location.pathname === '/home';
   const isClubs = location.pathname === '/clubs' || location.pathname.startsWith('/clubs/');
+  const isCalendar = location.pathname === '/calendar';
 
   // Fetch profile
   useEffect(() => {
@@ -124,6 +125,17 @@ export default function Navbar() {
           }`}
         >
           Clubs
+        </Link>
+
+        <Link
+          to="/calendar"
+          className={`flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.06em] text-fg-secondary hover:text-fg transition-colors py-4 ${
+            isCalendar ? 'border-b-2 border-accent' : 'border-b-2 border-transparent'
+          }`}
+        >
+          <CalendarDays size={15} className="sm:hidden" />
+          <span className="hidden sm:inline">Calendar</span>
+          <CalendarDays size={14} className="hidden sm:inline" />
         </Link>
 
         {/* Bell with dropdown */}
