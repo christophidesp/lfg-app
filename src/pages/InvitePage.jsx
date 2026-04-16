@@ -46,7 +46,7 @@ export default function InvitePage() {
       .select(`
         *,
         profiles!creator_id (full_name, avatar_url),
-        clubs (id, name),
+        clubs!club_id (id, name, avatar_url),
         workout_participants (id, status)
       `)
       .eq('id', inviteData.workout_id)
@@ -148,23 +148,40 @@ export default function InvitePage() {
                 </div>
                 <h2 className="font-sans text-[18px] font-medium">{workout.name || workout.workout_type}</h2>
                 <div className="flex items-center gap-2 mt-2">
-                  <Avatar
-                    name={workout.profiles?.full_name}
-                    avatarUrl={workout.profiles?.avatar_url}
-                    userId={workout.creator_id}
-                    size="sm"
-                    linked={false}
-                  />
-                  <p className="font-mono text-[11px] text-fg-secondary">
-                    Hosted by {workout.profiles?.full_name || 'Runner'}
-                  </p>
+                  {workout.host_type === 'club' && workout.clubs ? (
+                    <>
+                      <Avatar
+                        name={workout.clubs.name}
+                        avatarUrl={workout.clubs.avatar_url}
+                        userId={workout.clubs.id}
+                        size="sm"
+                        linked={false}
+                      />
+                      <p className="font-mono text-[11px] text-fg-secondary">
+                        Hosted by {workout.clubs.name}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Avatar
+                        name={workout.profiles?.full_name}
+                        avatarUrl={workout.profiles?.avatar_url}
+                        userId={workout.creator_id}
+                        size="sm"
+                        linked={false}
+                      />
+                      <p className="font-mono text-[11px] text-fg-secondary">
+                        Hosted by {workout.profiles?.full_name || 'Runner'}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="p-5 flex flex-col gap-2.5">
                 <p className="font-mono text-[12px] text-fg-secondary">
                   {format(new Date(workout.workout_date), 'MMM d, yyyy · h:mm a')}
                 </p>
-                {workout.clubs && (
+                {workout.host_type !== 'club' && workout.clubs && (
                   <p className="font-mono text-[12px] text-fg-secondary">
                     Club: <Link to={`/clubs/${workout.clubs.id}`} className="text-accent underline hover:text-accent-dark transition-colors">{workout.clubs.name}</Link>
                   </p>
@@ -204,16 +221,33 @@ export default function InvitePage() {
                 </div>
                 <h2 className="font-sans text-[18px] font-medium">{workout.name || workout.workout_type}</h2>
                 <div className="flex items-center gap-2 mt-2">
-                  <Avatar
-                    name={workout.profiles?.full_name}
-                    avatarUrl={workout.profiles?.avatar_url}
-                    userId={workout.creator_id}
-                    size="sm"
-                    linked={false}
-                  />
-                  <p className="font-mono text-[11px] text-fg-secondary">
-                    Hosted by {workout.profiles?.full_name || 'Runner'}
-                  </p>
+                  {workout.host_type === 'club' && workout.clubs ? (
+                    <>
+                      <Avatar
+                        name={workout.clubs.name}
+                        avatarUrl={workout.clubs.avatar_url}
+                        userId={workout.clubs.id}
+                        size="sm"
+                        linked={false}
+                      />
+                      <p className="font-mono text-[11px] text-fg-secondary">
+                        Hosted by <Link to={`/clubs/${workout.clubs.id}`} className="underline hover:text-fg transition-colors">{workout.clubs.name}</Link>
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Avatar
+                        name={workout.profiles?.full_name}
+                        avatarUrl={workout.profiles?.avatar_url}
+                        userId={workout.creator_id}
+                        size="sm"
+                        linked={false}
+                      />
+                      <p className="font-mono text-[11px] text-fg-secondary">
+                        Hosted by {workout.profiles?.full_name || 'Runner'}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="p-5 flex flex-col gap-2.5">
@@ -223,7 +257,7 @@ export default function InvitePage() {
                 <p className="font-mono text-[12px] text-fg-secondary">
                   {workout.location}
                 </p>
-                {workout.clubs && (
+                {workout.host_type !== 'club' && workout.clubs && (
                   <p className="font-mono text-[12px] text-fg-secondary">
                     Club: <Link to={`/clubs/${workout.clubs.id}`} className="text-accent underline hover:text-accent-dark transition-colors">{workout.clubs.name}</Link>
                   </p>

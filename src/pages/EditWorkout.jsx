@@ -17,6 +17,7 @@ export default function EditWorkout() {
   const [imagePreview, setImagePreview] = useState(null);
   const [originalData, setOriginalData] = useState(null);
   const [acceptedParticipants, setAcceptedParticipants] = useState([]);
+  const [userMemberships, setUserMemberships] = useState([]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -32,12 +33,23 @@ export default function EditWorkout() {
     max_participants: '',
     visibility: 'public',
     club_id: '',
+    host_type: 'user',
     image_url: '',
   });
 
   useEffect(() => {
     fetchWorkout();
+    fetchUserClubs();
   }, [id]);
+
+  const fetchUserClubs = async () => {
+    const { data } = await supabase
+      .from('club_members')
+      .select(`club_id, role, clubs (id, name, workout_creation)`)
+      .eq('user_id', user.id)
+      .eq('status', 'approved');
+    if (data) setUserMemberships(data);
+  };
 
   const fetchWorkout = async () => {
     setLoading(true);
@@ -75,6 +87,7 @@ export default function EditWorkout() {
       max_participants: workout.max_participants ?? '',
       visibility: workout.visibility || 'public',
       club_id: workout.club_id || '',
+      host_type: workout.host_type || 'user',
       image_url: workout.image_url || '',
     };
 
@@ -99,7 +112,11 @@ export default function EditWorkout() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'club_id') next.host_type = 'user';
+      return next;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -140,7 +157,8 @@ export default function EditWorkout() {
             ? parseInt(formData.max_participants)
             : null,
           visibility: formData.visibility,
-          club_id: formData.visibility === 'club' ? formData.club_id || null : null,
+          club_id: formData.club_id || null,
+          host_type: formData.club_id ? formData.host_type : 'user',
           image_url,
         })
         .eq('id', id);
@@ -349,6 +367,62 @@ export default function EditWorkout() {
                 <option value="private">Private</option>
               </select>
             </div>
+
+            {userMemberships.length > 0 && (
+              <div>
+                <label htmlFor="club_id" className="form-label">
+                  Club{formData.visibility === 'club' ? ' *' : ''}
+                </label>
+                <select
+                  id="club_id"
+                  name="club_id"
+                  value={formData.club_id}
+                  onChange={handleChange}
+                  className="input-field"
+                  required={formData.visibility === 'club'}
+                >
+                  <option value="">{formData.visibility === 'club' ? 'Select a club' : 'None'}</option>
+                  {userMemberships.map(m => (
+                    <option key={m.clubs.id} value={m.clubs.id}>{m.clubs.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {formData.club_id && (() => {
+              const membership = userMemberships.find(m => m.club_id === formData.club_id);
+              if (!membership || !['owner', 'admin'].includes(membership.role)) return null;
+              const clubName = membership.clubs?.name || 'Club';
+              return (
+                <div>
+                  <label className="form-label">Host as</label>
+                  <div className="flex border border-border">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, host_type: 'user' }))}
+                      className={`flex-1 font-mono text-[11px] uppercase tracking-[0.06em] px-4 py-2.5 transition-colors ${
+                        formData.host_type === 'user'
+                          ? 'bg-accent text-[#0A0A0A]'
+                          : 'bg-transparent text-fg-secondary hover:text-fg'
+                      }`}
+                    >
+                      Myself
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, host_type: 'club' }))}
+                      className={`flex-1 font-mono text-[11px] uppercase tracking-[0.06em] px-4 py-2.5 border-l border-border transition-colors ${
+                        formData.host_type === 'club'
+                          ? 'bg-accent text-[#0A0A0A]'
+                          : 'bg-transparent text-fg-secondary hover:text-fg'
+                      }`}
+                    >
+                      {clubName}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div>
               <label htmlFor="description" className="form-label">

@@ -34,7 +34,8 @@ export default function WorkoutDetail() {
       .from('workouts')
       .select(`
         *,
-        profiles!creator_id (full_name, avatar_url)
+        profiles!creator_id (full_name, avatar_url),
+        clubs!club_id (id, name, avatar_url)
       `)
       .eq('id', id)
       .single();
@@ -289,15 +290,32 @@ export default function WorkoutDetail() {
             </div>
             <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em]">{workout.name || workout.workout_type}</h1>
             <div className="flex items-center gap-2 mt-2">
-              <Avatar
-                name={workout.profiles?.full_name}
-                avatarUrl={workout.profiles?.avatar_url}
-                userId={workout.creator_id}
-                size="sm"
-              />
-              <p className="font-mono text-[11px] text-fg-secondary">
-                Hosted by <Link to={`/profile/${workout.creator_id}`} className="underline hover:text-fg transition-colors">{workout.profiles?.full_name || 'Runner'}</Link>
-              </p>
+              {workout.host_type === 'club' && workout.clubs ? (
+                <>
+                  <Avatar
+                    name={workout.clubs.name}
+                    avatarUrl={workout.clubs.avatar_url}
+                    userId={workout.clubs.id}
+                    size="sm"
+                    linked={false}
+                  />
+                  <p className="font-mono text-[11px] text-fg-secondary">
+                    Hosted by <Link to={`/clubs/${workout.clubs.id}`} className="underline hover:text-fg transition-colors">{workout.clubs.name}</Link>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Avatar
+                    name={workout.profiles?.full_name}
+                    avatarUrl={workout.profiles?.avatar_url}
+                    userId={workout.creator_id}
+                    size="sm"
+                  />
+                  <p className="font-mono text-[11px] text-fg-secondary">
+                    Hosted by <Link to={`/profile/${workout.creator_id}`} className="underline hover:text-fg transition-colors">{workout.profiles?.full_name || 'Runner'}</Link>
+                  </p>
+                </>
+              )}
             </div>
           </div>
 

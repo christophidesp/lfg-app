@@ -46,12 +46,12 @@ export default function ProfilePage() {
         supabase.from('profiles').select('*').eq('id', id).single(),
         supabase
           .from('workouts')
-          .select('*, workout_participants (id, status)')
+          .select('*, workout_participants (id, status), clubs!club_id (id, name, avatar_url)')
           .eq('creator_id', id)
           .order('workout_date', { ascending: false }),
         supabase
           .from('workout_participants')
-          .select('*, workouts (*, workout_participants (id, status))')
+          .select('*, workouts (*, workout_participants (id, status), clubs!club_id (id, name, avatar_url))')
           .eq('user_id', id)
           .eq('status', 'accepted')
           .order('created_at', { ascending: false }),
@@ -227,6 +227,11 @@ function WorkoutRow({ workout, onClick }) {
         <p className="text-[14px] font-medium text-fg truncate mb-1">
           {workout.name || workout.workout_type}
         </p>
+        {workout.host_type === 'club' && workout.clubs && (
+          <p className="font-mono text-[10px] text-fg-muted mb-1">
+            Hosted by {workout.clubs.name}
+          </p>
+        )}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-mono text-[11px] text-fg-secondary">
             {format(new Date(workout.workout_date), 'MMM d, yyyy · HH:mm')}

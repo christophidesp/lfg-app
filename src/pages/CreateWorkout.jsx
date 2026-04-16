@@ -31,6 +31,7 @@ export default function CreateWorkout() {
     club_id: '',
     name: '',
     race_id: '',
+    host_type: 'user',
   });
 
   // Race search state
@@ -111,10 +112,14 @@ export default function CreateWorkout() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      const next = { ...prev, [name]: value };
+      // Reset host_type when changing clubs or clearing club
+      if (name === 'club_id') {
+        next.host_type = 'user';
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -162,7 +167,8 @@ export default function CreateWorkout() {
             description: formData.description,
             max_participants: formData.max_participants ? parseInt(formData.max_participants) : null,
             visibility: formData.visibility,
-            club_id: formData.visibility === 'club' ? formData.club_id || null : null,
+            club_id: formData.club_id || null,
+            host_type: formData.club_id ? formData.host_type : 'user',
             name: formData.name || null,
             race_id: formData.race_id || null,
             image_url,
@@ -424,6 +430,59 @@ export default function CreateWorkout() {
                 )}
               </div>
             )}
+
+            {formData.visibility !== 'club' && userClubs.length > 0 && (
+              <div>
+                <label htmlFor="club_id" className="form-label">Club</label>
+                <select
+                  id="club_id"
+                  name="club_id"
+                  value={formData.club_id}
+                  onChange={handleChange}
+                  className="input-field"
+                >
+                  <option value="">None</option>
+                  {userClubs.map(club => (
+                    <option key={club.id} value={club.id}>{club.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {formData.club_id && (() => {
+              const membership = userMemberships.find(m => m.club_id === formData.club_id);
+              if (!membership || !['owner', 'admin'].includes(membership.role)) return null;
+              const clubName = membership.clubs?.name || 'Club';
+              return (
+                <div>
+                  <label className="form-label">Host as</label>
+                  <div className="flex border border-border">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, host_type: 'user' }))}
+                      className={`flex-1 font-mono text-[11px] uppercase tracking-[0.06em] px-4 py-2.5 transition-colors ${
+                        formData.host_type === 'user'
+                          ? 'bg-accent text-[#0A0A0A]'
+                          : 'bg-transparent text-fg-secondary hover:text-fg'
+                      }`}
+                    >
+                      Myself
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, host_type: 'club' }))}
+                      className={`flex-1 font-mono text-[11px] uppercase tracking-[0.06em] px-4 py-2.5 border-l border-border transition-colors ${
+                        formData.host_type === 'club'
+                          ? 'bg-accent text-[#0A0A0A]'
+                          : 'bg-transparent text-fg-secondary hover:text-fg'
+                      }`}
+                    >
+                      {clubName}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div>
               <label htmlFor="description" className="form-label">Description</label>

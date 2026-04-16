@@ -79,6 +79,7 @@ export default function BrowseWorkouts() {
       .select(`
         *,
         profiles!creator_id (full_name, avatar_url),
+        clubs!club_id (id, name, avatar_url),
         workout_participants (id, status)
       `)
       .order('workout_date', { ascending: true });
@@ -477,16 +478,33 @@ export default function BrowseWorkouts() {
                         </div>
                         <h3 className="font-sans text-[15px] font-medium">{workout.name || workout.workout_type}</h3>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <Avatar
-                            name={workout.profiles?.full_name}
-                            avatarUrl={workout.profiles?.avatar_url}
-                            userId={workout.creator_id}
-                            size="sm"
-                            linked={false}
-                          />
-                          <p className="font-mono text-[11px] text-fg-secondary">
-                            {workout.creator_id === user.id ? 'Created by you' : `Hosted by ${workout.profiles?.full_name || 'Runner'}`}
-                          </p>
+                          {workout.host_type === 'club' && workout.clubs ? (
+                            <>
+                              <Avatar
+                                name={workout.clubs.name}
+                                avatarUrl={workout.clubs.avatar_url}
+                                userId={workout.clubs.id}
+                                size="sm"
+                                linked={false}
+                              />
+                              <p className="font-mono text-[11px] text-fg-secondary">
+                                {workout.creator_id === user.id ? 'Created by you' : `Hosted by ${workout.clubs.name}`}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <Avatar
+                                name={workout.profiles?.full_name}
+                                avatarUrl={workout.profiles?.avatar_url}
+                                userId={workout.creator_id}
+                                size="sm"
+                                linked={false}
+                              />
+                              <p className="font-mono text-[11px] text-fg-secondary">
+                                {workout.creator_id === user.id ? 'Created by you' : `Hosted by ${workout.profiles?.full_name || 'Runner'}`}
+                              </p>
+                            </>
+                          )}
                         </div>
                       </div>
 
