@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { APP_BASE_URL } from '../lib/config';
 import Avatar from '../components/Avatar';
 import PlacesAutocomplete from '../components/PlacesAutocomplete';
 import { Share2, Check, RotateCcw, MapPin, X } from 'lucide-react';
@@ -106,7 +107,7 @@ export default function ClubSettings() {
   };
 
   const handleCopyInvite = async () => {
-    const url = `https://lfg-app-plum.vercel.app/clubs/invite/${inviteToken}`;
+    const url = `${APP_BASE_URL}/clubs/invite/${inviteToken}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -373,7 +374,7 @@ export default function ClubSettings() {
                 <input
                   type="text"
                   readOnly
-                  value={`https://lfg-app-plum.vercel.app/clubs/invite/${inviteToken}`}
+                  value={`${APP_BASE_URL}/clubs/invite/${inviteToken}`}
                   className="input-field flex-1 text-fg-muted"
                 />
               </div>

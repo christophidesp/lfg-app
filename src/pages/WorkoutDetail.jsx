@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { APP_BASE_URL } from '../lib/config';
 import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
 import { Share2, Check, Pencil } from 'lucide-react';
@@ -223,7 +224,7 @@ export default function WorkoutDetail() {
   };
 
   const handleCopyLink = async () => {
-    const url = `https://lfg-app-plum.vercel.app/invite/${inviteToken}`;
+    const url = `${APP_BASE_URL}/invite/${inviteToken}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
