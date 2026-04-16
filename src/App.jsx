@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { supabase } from './lib/supabase';
 import { NotificationProvider } from './contexts/NotificationContext';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
@@ -18,7 +20,9 @@ import ClubSettings from './pages/ClubSettings';
 import InvitePage from './pages/InvitePage';
 import ClubInvitePage from './pages/ClubInvitePage';
 import Calendar from './pages/Calendar';
+import CodeOfConduct from './pages/CodeOfConduct';
 import Navbar from './components/Navbar';
+import ConductModal from './components/ConductModal';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -57,12 +61,43 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
+function ConductGate({ children }) {
+  const { user } = useAuth();
+  const [checked, setChecked] = useState(false);
+  const [needsAcceptance, setNeedsAcceptance] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setChecked(true); return; }
+    supabase
+      .from('profiles')
+      .select('code_of_conduct_accepted_at')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        setNeedsAcceptance(!data?.code_of_conduct_accepted_at);
+        setChecked(true);
+      });
+  }, [user]);
+
+  if (!checked) return null;
+
+  return (
+    <>
+      {needsAcceptance && user && (
+        <ConductModal onAccepted={() => setNeedsAcceptance(false)} />
+      )}
+      {children}
+    </>
+  );
+}
+
 function AppRoutes() {
   const { user } = useAuth();
 
   return (
     <>
       {user && <Navbar />}
+      <ConductGate>
       <Routes>
         <Route 
           path="/" 
@@ -194,7 +229,9 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route path="/code-of-conduct" element={<CodeOfConduct />} />
       </Routes>
+      </ConductGate>
     </>
   );
 }

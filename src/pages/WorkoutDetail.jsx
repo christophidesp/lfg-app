@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
 import { Share2, Check, Pencil } from 'lucide-react';
 import WorkoutCover from '../components/WorkoutCover';
+import ReportButton from '../components/ReportButton';
 
 export default function WorkoutDetail() {
   const { id } = useParams();
@@ -398,6 +399,9 @@ export default function WorkoutDetail() {
                 >
                   Delete
                 </button>
+              )}
+              {!isCreator && (
+                <ReportButton workoutId={id} />
               )}
             </div>
           </div>

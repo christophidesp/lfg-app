@@ -5,6 +5,9 @@ import { supabase } from '../lib/supabase';
 import { format, isPast } from 'date-fns';
 import Avatar from '../components/Avatar';
 import { ChevronRight } from 'lucide-react';
+import ReportButton from '../components/ReportButton';
+import Footer from '../components/Footer';
+import { GENDER_IDENTITIES } from '../constants/identity';
 
 function spotsRemaining(workout) {
   const accepted = (workout.workout_participants || []).filter(
@@ -118,7 +121,12 @@ export default function ProfilePage() {
                 linked={false}
               />
               <div>
-                <h1 className="font-sans text-[22px] font-medium">{profile.full_name || 'Runner'}</h1>
+                <div className="flex items-baseline gap-2">
+                  <h1 className="font-sans text-[22px] font-medium">{profile.full_name || 'Runner'}</h1>
+                  {profile.pronouns && profile.display_pronouns_on_profile && (
+                    <span className="font-mono text-[12px] text-fg-muted">{profile.pronouns}</span>
+                  )}
+                </div>
                 <p className="font-mono text-[11px] text-fg-muted mt-1">
                   Member since {profile.created_at ? format(new Date(profile.created_at), 'MMM yyyy') : 'Unknown'}
                 </p>
@@ -136,6 +144,15 @@ export default function ProfilePage() {
               <div>
                 <p className="mono-label mb-2">Bio</p>
                 <p className="text-[13px] font-light text-fg-secondary leading-relaxed">{profile.bio}</p>
+              </div>
+            )}
+
+            {profile.gender_identity && profile.gender_identity !== 'prefer_not_to_say' && profile.display_gender_on_profile && (
+              <div>
+                <p className="mono-label mb-2">Gender</p>
+                <p className="font-mono text-[13px] text-fg-secondary">
+                  {GENDER_IDENTITIES.find(g => g.value === profile.gender_identity)?.label || profile.gender_identity}
+                </p>
               </div>
             )}
 
@@ -163,7 +180,14 @@ export default function ProfilePage() {
           allHidden={!isOwnProfile && joinedWorkouts.length > 0 && filteredJoined.length === 0}
           onRowClick={(w) => navigate(`/workout/${w.id}`)}
         />
+
+        {!isOwnProfile && (
+          <div className="flex justify-end mt-4">
+            <ReportButton userId={id} />
+          </div>
+        )}
       </div>
+      <Footer />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ export default function SignUp() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
+  const [conductAccepted, setConductAccepted] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,12 +33,19 @@ export default function SignUp() {
     setError('');
     setLoading(true);
 
-    const { error } = await signUp(email, password, { full_name: fullName });
+    const { data, error } = await signUp(email, password, { full_name: fullName });
 
     if (error) {
       setError(error.message);
       setLoading(false);
     } else {
+      // Set code of conduct acceptance timestamp
+      if (data?.user?.id) {
+        await supabase
+          .from('profiles')
+          .update({ code_of_conduct_accepted_at: new Date().toISOString() })
+          .eq('id', data.user.id);
+      }
       setLoading(false);
       setConfirmationSent(true);
     }
@@ -134,10 +143,30 @@ export default function SignUp() {
             </div>
           </div>
 
+          <label className="flex items-start gap-3 mt-6 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={conductAccepted}
+              onChange={(e) => setConductAccepted(e.target.checked)}
+              className="w-4 h-4 accent-accent mt-0.5 flex-shrink-0"
+            />
+            <span className="text-[13px] text-fg-secondary font-light leading-snug">
+              I've read and agree to the{' '}
+              <a
+                href="/code-of-conduct"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-fg underline"
+              >
+                Code of Conduct
+              </a>
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={loading}
-            className="w-full btn-primary mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !conductAccepted}
+            className="w-full btn-primary mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating account...' : 'Sign up'}
           </button>

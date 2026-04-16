@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
 import WorkoutCover from '../components/WorkoutCover';
+import ReportButton from '../components/ReportButton';
 
 export default function ClubDetail() {
   const { id } = useParams();
@@ -163,6 +164,9 @@ export default function ClubDetail() {
               )}
               {isPending && (
                 <span className="badge-pending">Join Pending</span>
+              )}
+              {!isAdmin && (
+                <ReportButton clubId={id} />
               )}
             </div>
           </div>

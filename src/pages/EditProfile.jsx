@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import Avatar from '../components/Avatar';
+import { GENDER_IDENTITIES, PRONOUN_PRESETS } from '../constants/identity';
 
 export default function EditProfile() {
   const { user, signOut } = useAuth();
@@ -21,7 +22,13 @@ export default function EditProfile() {
     pace_min: '',
     pace_sec: '',
     avatar_url: '',
+    gender_identity: '',
+    pronouns: '',
+    display_gender_on_profile: true,
+    display_pronouns_on_profile: true,
   });
+  const [customPronouns, setCustomPronouns] = useState('');
+  const [pronounMode, setPronounMode] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -36,13 +43,25 @@ export default function EditProfile() {
       .single();
 
     if (data) {
+      const pronounsValue = data.pronouns || '';
+      const isPreset = PRONOUN_PRESETS.some(p => p.value === pronounsValue && p.value !== 'custom');
       setFormData({
         full_name: data.full_name || '',
         bio: data.bio || '',
         pace_min: data.pace_min ?? '',
         pace_sec: data.pace_sec ?? '',
         avatar_url: data.avatar_url || '',
+        gender_identity: data.gender_identity || '',
+        pronouns: pronounsValue,
+        display_gender_on_profile: data.display_gender_on_profile ?? true,
+        display_pronouns_on_profile: data.display_pronouns_on_profile ?? true,
       });
+      if (pronounsValue && !isPreset) {
+        setPronounMode('custom');
+        setCustomPronouns(pronounsValue);
+      } else {
+        setPronounMode(pronounsValue);
+      }
     }
     setLoading(false);
   };
@@ -82,12 +101,17 @@ export default function EditProfile() {
     setSaving(true);
     setError('');
 
+    const resolvedPronouns = pronounMode === 'custom' ? customPronouns.trim() : pronounMode;
     const updates = {
       full_name: formData.full_name,
       bio: formData.bio,
       pace_min: formData.pace_min !== '' ? parseInt(formData.pace_min) : null,
       pace_sec: formData.pace_sec !== '' ? parseInt(formData.pace_sec) : null,
       avatar_url: formData.avatar_url || null,
+      gender_identity: formData.gender_identity || null,
+      pronouns: resolvedPronouns || null,
+      display_gender_on_profile: formData.display_gender_on_profile,
+      display_pronouns_on_profile: formData.display_pronouns_on_profile,
       updated_at: new Date().toISOString(),
     };
 
@@ -210,6 +234,94 @@ export default function EditProfile() {
                 />
                 <span className="font-mono text-[12px] text-fg-muted">/km</span>
               </div>
+            </div>
+          </div>
+
+          {/* Identity section */}
+          <div className="border-t border-border mt-8 pt-6">
+            <p className="font-sans text-[17px] font-medium mb-1">Identity <span className="text-[13px] font-light text-fg-muted">(optional)</span></p>
+            <p className="text-[12px] font-light text-fg-muted leading-relaxed mb-6">
+              LFG uses this to build features that make group runs welcoming for everyone — like showing who's joined a workout, or creating spaces for women and non-binary runners. All fields are optional and you can change them anytime.
+            </p>
+
+            <div className="space-y-6">
+              {/* Gender identity */}
+              <div>
+                <label htmlFor="gender_identity" className="form-label">Gender identity</label>
+                <select
+                  id="gender_identity"
+                  value={formData.gender_identity}
+                  onChange={(e) => setFormData(prev => ({ ...prev, gender_identity: e.target.value }))}
+                  className="input-field"
+                >
+                  <option value="">Not set</option>
+                  {GENDER_IDENTITIES.map((g) => (
+                    <option key={g.value} value={g.value}>{g.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Pronouns */}
+              <div>
+                <label htmlFor="pronouns" className="form-label">Pronouns</label>
+                <select
+                  id="pronouns"
+                  value={pronounMode}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPronounMode(val);
+                    if (val !== 'custom') {
+                      setFormData(prev => ({ ...prev, pronouns: val }));
+                      setCustomPronouns('');
+                    }
+                  }}
+                  className="input-field"
+                >
+                  <option value="">Not set</option>
+                  {PRONOUN_PRESETS.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+                {pronounMode === 'custom' && (
+                  <input
+                    type="text"
+                    value={customPronouns}
+                    onChange={(e) => {
+                      const val = e.target.value.slice(0, 30);
+                      setCustomPronouns(val);
+                      setFormData(prev => ({ ...prev, pronouns: val }));
+                    }}
+                    maxLength={30}
+                    className="input-field mt-2"
+                    placeholder="e.g. ze/zir"
+                  />
+                )}
+              </div>
+
+              {/* Display toggles */}
+              {formData.gender_identity && formData.gender_identity !== 'prefer_not_to_say' && (
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.display_gender_on_profile}
+                    onChange={(e) => setFormData(prev => ({ ...prev, display_gender_on_profile: e.target.checked }))}
+                    className="w-4 h-4 accent-accent"
+                  />
+                  <span className="text-[13px] text-fg-secondary font-light">Display gender on profile</span>
+                </label>
+              )}
+
+              {(pronounMode && pronounMode !== '') && (
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.display_pronouns_on_profile}
+                    onChange={(e) => setFormData(prev => ({ ...prev, display_pronouns_on_profile: e.target.checked }))}
+                    className="w-4 h-4 accent-accent"
+                  />
+                  <span className="text-[13px] text-fg-secondary font-light">Display pronouns on profile</span>
+                </label>
+              )}
             </div>
           </div>
 
