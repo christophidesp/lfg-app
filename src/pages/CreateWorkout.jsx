@@ -157,7 +157,7 @@ export default function CreateWorkout() {
           {
             creator_id: user.id,
             workout_type: formData.workout_type,
-            workout_date: `${formData.workout_date}T${formData.workout_time}`,
+            workout_date: new Date(`${formData.workout_date}T${formData.workout_time}`).toISOString(),
             location: formData.location,
             lat: formData.lat,
             lng: formData.lng,
