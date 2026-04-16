@@ -83,7 +83,7 @@ export default function ClubInvitePage() {
 
   const handleSignupRedirect = () => {
     sessionStorage.setItem('club_invite_token', token);
-    navigate('/signup');
+    navigate('/signup', { state: { from: `/clubs/invite/${token}` } });
   };
 
   if (authLoading || loading) {
@@ -163,7 +163,7 @@ export default function ClubInvitePage() {
               </button>
               <p className="font-mono text-[11px] text-fg-muted text-center">
                 Already have an account?{' '}
-                <Link to="/signin" className="text-fg underline">Sign in</Link>
+                <Link to="/signin" state={{ from: `/clubs/invite/${token}` }} className="text-fg underline">Sign in</Link>
               </p>
             </div>
           </>

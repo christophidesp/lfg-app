@@ -15,6 +15,7 @@ export default function CreateWorkout() {
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [creatorJoins, setCreatorJoins] = useState(true);
 
   const [formData, setFormData] = useState({
     workout_type: 'Easy Run',
@@ -178,6 +179,15 @@ export default function CreateWorkout() {
         .single();
 
       if (insertError) throw insertError;
+
+      // If club-hosted and creator wants to join, add them as participant
+      if (formData.host_type === 'club' && formData.club_id && creatorJoins) {
+        await supabase.from('workout_participants').insert([{
+          workout_id: data.id,
+          user_id: user.id,
+          status: 'accepted',
+        }]);
+      }
 
       navigate(`/workout/${data.id}`);
     } catch (err) {
@@ -483,6 +493,25 @@ export default function CreateWorkout() {
                 </div>
               );
             })()}
+
+            {formData.host_type === 'club' && formData.club_id && (
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={creatorJoins}
+                    onChange={(e) => setCreatorJoins(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-8 h-4 bg-border peer-checked:bg-accent relative transition-colors">
+                    <div className={`absolute top-0.5 w-3 h-3 bg-surface transition-all ${creatorJoins ? 'left-[18px]' : 'left-0.5'}`} />
+                  </div>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-fg-secondary">
+                    I'm joining this workout
+                  </span>
+                </label>
+              </div>
+            )}
 
             <div>
               <label htmlFor="description" className="form-label">Description</label>

@@ -18,6 +18,7 @@ export default function EditWorkout() {
   const [originalData, setOriginalData] = useState(null);
   const [acceptedParticipants, setAcceptedParticipants] = useState([]);
   const [userMemberships, setUserMemberships] = useState([]);
+  const [creatorJoins, setCreatorJoins] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -103,6 +104,9 @@ export default function EditWorkout() {
       .eq('status', 'accepted');
 
     setAcceptedParticipants(participants || []);
+    // Check if creator is already a participant (for club-hosted workouts)
+    const creatorIsParticipant = (participants || []).some(p => p.user_id === user.id);
+    setCreatorJoins(creatorIsParticipant);
     setLoading(false);
   };
 
@@ -179,6 +183,23 @@ export default function EditWorkout() {
         if (notifications.length > 0) {
           await supabase.from('notifications').insert(notifications);
         }
+      }
+
+      // Handle creator participation for club-hosted workouts
+      const isClubHosted = (formData.club_id ? formData.host_type : 'user') === 'club' && formData.club_id;
+      const wasParticipant = acceptedParticipants.some(p => p.user_id === user.id);
+
+      if (isClubHosted && creatorJoins && !wasParticipant) {
+        await supabase.from('workout_participants').insert([{
+          workout_id: id,
+          user_id: user.id,
+          status: 'accepted',
+        }]);
+      } else if ((!isClubHosted || !creatorJoins) && wasParticipant) {
+        await supabase.from('workout_participants')
+          .delete()
+          .eq('workout_id', id)
+          .eq('user_id', user.id);
       }
 
       navigate(`/workout/${id}`);
@@ -423,6 +444,25 @@ export default function EditWorkout() {
                 </div>
               );
             })()}
+
+            {formData.host_type === 'club' && formData.club_id && (
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={creatorJoins}
+                    onChange={(e) => setCreatorJoins(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-8 h-4 bg-border peer-checked:bg-accent relative transition-colors">
+                    <div className={`absolute top-0.5 w-3 h-3 bg-surface transition-all ${creatorJoins ? 'left-[18px]' : 'left-0.5'}`} />
+                  </div>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-fg-secondary">
+                    I'm joining this workout
+                  </span>
+                </label>
+              </div>
+            )}
 
             <div>
               <label htmlFor="description" className="form-label">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function SignIn() {
@@ -9,6 +9,17 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const getRedirect = () => {
+    if (location.state?.from) return location.state.from;
+    const inviteToken = sessionStorage.getItem('invite_token');
+    if (inviteToken) return `/invite/${inviteToken}`;
+    const clubInviteToken = sessionStorage.getItem('club_invite_token');
+    if (clubInviteToken) return `/clubs/invite/${clubInviteToken}`;
+    return '/dashboard';
+  };
+  const redirectTo = getRedirect();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +32,7 @@ export default function SignIn() {
       setError(error.message);
       setLoading(false);
     } else {
-      navigate('/dashboard');
+      navigate(redirectTo);
     }
   };
 

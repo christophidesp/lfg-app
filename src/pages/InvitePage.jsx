@@ -101,7 +101,7 @@ export default function InvitePage() {
 
   const handleSignupRedirect = () => {
     sessionStorage.setItem('invite_token', token);
-    navigate('/signup');
+    navigate('/signup', { state: { from: `/invite/${token}` } });
   };
 
   if (authLoading || loading) {
@@ -206,7 +206,7 @@ export default function InvitePage() {
               </button>
               <p className="font-mono text-[11px] text-fg-muted text-center">
                 Already have an account?{' '}
-                <Link to="/signin" className="text-fg underline">Sign in</Link>
+                <Link to="/signin" state={{ from: `/invite/${token}` }} className="text-fg underline">Sign in</Link>
               </p>
             </div>
           </>

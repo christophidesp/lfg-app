@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import Landing from './pages/Landing';
@@ -23,6 +23,7 @@ import Navbar from './components/Navbar';
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -32,12 +33,13 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  return user ? children : <Navigate to="/signin" />;
+  return user ? children : <Navigate to="/signin" state={{ from: location.pathname }} />;
 };
 
-// Public route wrapper (redirects to dashboard if authenticated)
+// Public route wrapper (redirects to intended destination or home if authenticated)
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -47,7 +49,12 @@ const PublicRoute = ({ children }) => {
     );
   }
 
-  return !user ? children : <Navigate to="/home" />;
+  if (user) {
+    const redirectTo = location.state?.from || '/home';
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  return children;
 };
 
 function AppRoutes() {

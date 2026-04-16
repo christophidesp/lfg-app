@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function SignUp() {
@@ -12,6 +12,8 @@ export default function SignUp() {
   const [confirmationSent, setConfirmationSent] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,7 +50,7 @@ export default function SignUp() {
           <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em] mt-6">Create your account</h1>
           <p className="font-sans text-[13px] text-fg-secondary mt-2">
             Already have an account?{' '}
-            <Link to="/signin" className="text-fg underline">Sign in</Link>
+            <Link to="/signin" state={redirectTo ? { from: redirectTo } : undefined} className="text-fg underline">Sign in</Link>
           </p>
         </div>
 
@@ -58,7 +60,7 @@ export default function SignUp() {
             <p className="text-[13px] text-fg-secondary font-light leading-relaxed mb-3">
               We sent a confirmation link to <span className="text-fg font-medium">{email}</span>. Please confirm your email before signing in.
             </p>
-            <Link to="/signin" className="font-mono text-[12px] uppercase tracking-[0.06em] text-accent hover:underline">
+            <Link to="/signin" state={redirectTo ? { from: redirectTo } : undefined} className="font-mono text-[12px] uppercase tracking-[0.06em] text-accent hover:underline">
               Go to sign in →
             </Link>
           </div>
