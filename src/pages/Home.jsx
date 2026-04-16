@@ -70,6 +70,7 @@ export default function Home() {
         .select(`
           *,
           profiles!creator_id (id, full_name, avatar_url),
+          clubs!club_id (id, name, avatar_url),
           workout_participants (id, status),
           races (name)
         `)
@@ -425,7 +426,8 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
     ? format(new Date(workout.workout_date), 'EEE d MMM').toUpperCase()
     : null;
   const spots = spotsRemaining(workout);
-  const hostName = formatHostName(workout.profiles?.full_name);
+  const isClubHost = workout.host_type === 'club' && workout.clubs;
+  const hostName = isClubHost ? workout.clubs.name : formatHostName(workout.profiles?.full_name);
 
   return (
     <button
@@ -481,9 +483,9 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
       {/* Host */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <Avatar
-          name={workout.profiles?.full_name}
-          avatarUrl={workout.profiles?.avatar_url}
-          userId={workout.profiles?.id}
+          name={isClubHost ? workout.clubs.name : workout.profiles?.full_name}
+          avatarUrl={isClubHost ? workout.clubs.avatar_url : workout.profiles?.avatar_url}
+          userId={isClubHost ? workout.clubs.id : workout.profiles?.id}
           size="sm"
           linked={false}
         />
