@@ -436,10 +436,39 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
   const accepted = (workout.workout_participants || []).filter(p => p.status === 'accepted');
   const genderBreakdown = getGenderBreakdown(accepted);
 
+  const spotsColor =
+    spots === null
+      ? accepted.length === 0
+        ? 'text-[#4ADE80]'
+        : 'text-fg-muted'
+      : spots <= 0
+      ? 'text-fg-muted'
+      : spots <= 2
+      ? 'text-accent'
+      : 'text-[#4ADE80]';
+
+  const spotsCompact =
+    spots === null
+      ? accepted.length === 0
+        ? 'Open'
+        : accepted.length
+      : spots <= 0
+      ? 'Full'
+      : spots;
+
+  const spotsVerbose =
+    spots === null
+      ? accepted.length === 0
+        ? 'Open'
+        : `${accepted.length} joined`
+      : spots <= 0
+      ? 'Full'
+      : `${spots} remaining ${spots === 1 ? 'spot' : 'spots'}`;
+
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-4 py-3 border-b border-border hover:bg-surface-secondary transition-colors text-left px-1"
+      className="w-full flex flex-wrap items-center gap-x-4 gap-y-0 py-3 border-b border-border hover:bg-surface-secondary transition-colors text-left px-1"
     >
       {/* Date + Time */}
       <div className="flex-shrink-0 w-[76px]">
@@ -487,8 +516,8 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
         </div>
       </div>
 
-      {/* Host */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      {/* Host — desktop only */}
+      <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
         <Avatar
           name={isClubHost ? workout.clubs.name : workout.profiles?.full_name}
           avatarUrl={isClubHost ? workout.clubs.avatar_url : workout.profiles?.avatar_url}
@@ -496,46 +525,17 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
           size="sm"
           linked={false}
         />
-        <span className="font-mono text-[11px] text-fg-secondary hidden sm:inline">
+        <span className="font-mono text-[11px] text-fg-secondary">
           {hostName}
         </span>
       </div>
 
-      {/* Spots + arrow */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      {/* Spots + arrow — desktop only */}
+      <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
         <div className="flex flex-col items-end gap-0.5">
-        <span
-          className={`font-mono text-[10px] uppercase tracking-[0.06em] px-2 py-[1px] ${
-            spots === null
-              ? accepted.length === 0
-                ? 'text-[#4ADE80]'
-                : 'text-fg-muted'
-              : spots <= 0
-              ? 'text-fg-muted'
-              : spots <= 2
-              ? 'text-accent'
-              : 'text-[#4ADE80]'
-          }`}
-        >
-          <span className="sm:hidden">
-            {spots === null
-              ? accepted.length === 0
-                ? 'Open'
-                : accepted.length
-              : spots <= 0
-              ? 'Full'
-              : spots}
+          <span className={`font-mono text-[10px] uppercase tracking-[0.06em] px-2 py-[1px] ${spotsColor}`}>
+            {spotsVerbose}
           </span>
-          <span className="hidden sm:inline">
-            {spots === null
-              ? accepted.length === 0
-                ? 'Open'
-                : `${accepted.length} joined`
-              : spots <= 0
-              ? 'Full'
-              : `${spots} remaining ${spots === 1 ? 'spot' : 'spots'}`}
-          </span>
-        </span>
           {genderBreakdown.label && (
             <span className="font-mono text-[10px] text-fg-muted px-2">
               <GenderBreakdown breakdown={genderBreakdown} />
@@ -543,6 +543,29 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
           )}
         </div>
         <ChevronRight size={14} className="text-fg-muted" />
+      </div>
+
+      {/* Mobile bottom row — host + count + gender + chevron */}
+      <div className="flex sm:hidden w-full items-center gap-2 mt-2">
+        <Avatar
+          name={isClubHost ? workout.clubs.name : workout.profiles?.full_name}
+          avatarUrl={isClubHost ? workout.clubs.avatar_url : workout.profiles?.avatar_url}
+          userId={isClubHost ? workout.clubs.id : workout.profiles?.id}
+          size="sm"
+          linked={false}
+        />
+        <span className="font-mono text-[11px] text-fg-secondary truncate flex-1 min-w-0">
+          {hostName}
+        </span>
+        <span className={`font-mono text-[10px] uppercase tracking-[0.06em] px-2 py-[1px] flex-shrink-0 ${spotsColor}`}>
+          {spotsCompact}
+        </span>
+        {genderBreakdown.label && (
+          <span className="font-mono text-[11px] text-fg-muted flex-shrink-0">
+            <GenderBreakdown breakdown={genderBreakdown} />
+          </span>
+        )}
+        <ChevronRight size={14} className="text-fg-muted flex-shrink-0" />
       </div>
     </button>
   );
