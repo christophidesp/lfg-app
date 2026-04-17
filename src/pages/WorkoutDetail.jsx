@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { APP_BASE_URL } from '../lib/config';
 import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
-import { Share2, Check, Pencil } from 'lucide-react';
+import { Share2, Check, Pencil, X } from 'lucide-react';
 import WorkoutCover from '../components/WorkoutCover';
 import ReportButton from '../components/ReportButton';
 import { getGenderBreakdown } from '../lib/genderBreakdown';
@@ -407,8 +407,9 @@ export default function WorkoutDetail() {
               {isCreator && !workout.cancelled_at && (
                 <button
                   onClick={handleCancel}
-                  className="btn-decline"
+                  className="btn-decline flex items-center gap-1.5 px-5 py-2.5"
                 >
+                  <X size={13} />
                   Cancel
                 </button>
               )}
