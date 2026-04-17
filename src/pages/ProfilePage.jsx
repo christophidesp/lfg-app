@@ -293,13 +293,24 @@ function WorkoutRow({ workout, onClick }) {
               : 'text-[#4ADE80]'
           }`}
         >
-          {spots === null
-            ? joined === 0
-              ? 'Open'
-              : `${joined} joined`
-            : spots <= 0
-            ? 'Full'
-            : `${spots} remaining ${spots === 1 ? 'spot' : 'spots'}`}
+          <span className="sm:hidden">
+            {spots === null
+              ? joined === 0
+                ? 'Open'
+                : joined
+              : spots <= 0
+              ? 'Full'
+              : spots}
+          </span>
+          <span className="hidden sm:inline">
+            {spots === null
+              ? joined === 0
+                ? 'Open'
+                : `${joined} joined`
+              : spots <= 0
+              ? 'Full'
+              : `${spots} remaining ${spots === 1 ? 'spot' : 'spots'}`}
+          </span>
         </span>
         <ChevronRight size={14} className="text-fg-muted" />
       </div>

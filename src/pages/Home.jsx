@@ -517,13 +517,24 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
               : 'text-[#4ADE80]'
           }`}
         >
-          {spots === null
-            ? accepted.length === 0
-              ? 'Open'
-              : `${accepted.length} joined`
-            : spots <= 0
-            ? 'Full'
-            : `${spots} remaining ${spots === 1 ? 'spot' : 'spots'}`}
+          <span className="sm:hidden">
+            {spots === null
+              ? accepted.length === 0
+                ? 'Open'
+                : accepted.length
+              : spots <= 0
+              ? 'Full'
+              : spots}
+          </span>
+          <span className="hidden sm:inline">
+            {spots === null
+              ? accepted.length === 0
+                ? 'Open'
+                : `${accepted.length} joined`
+              : spots <= 0
+              ? 'Full'
+              : `${spots} remaining ${spots === 1 ? 'spot' : 'spots'}`}
+          </span>
         </span>
           {genderBreakdown.label && (
             <span className="font-mono text-[10px] text-fg-muted px-2">
