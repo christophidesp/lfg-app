@@ -8,6 +8,8 @@ import Avatar from '../components/Avatar';
 import { Share2, Check, Pencil } from 'lucide-react';
 import WorkoutCover from '../components/WorkoutCover';
 import ReportButton from '../components/ReportButton';
+import { getGenderBreakdown } from '../lib/genderBreakdown';
+import GenderBreakdown from '../components/GenderBreakdown';
 
 export default function WorkoutDetail() {
   const { id } = useParams();
@@ -61,7 +63,7 @@ export default function WorkoutDetail() {
         .from('workout_participants')
         .select(`
           *,
-          profiles!user_id (full_name, avatar_url)
+          profiles!user_id (full_name, avatar_url, gender_identity, display_gender_on_profile)
         `)
         .eq('workout_id', id)
         .order('created_at', { ascending: true });
@@ -263,6 +265,7 @@ export default function WorkoutDetail() {
   const isCreator = workout.creator_id === user.id;
   const acceptedParticipants = participants.filter(p => p.status === 'accepted');
   const pendingParticipants = participants.filter(p => p.status === 'pending');
+  const genderBreakdown = getGenderBreakdown(acceptedParticipants);
   const hasMax = workout.max_participants != null;
   const isFull = hasMax && acceptedParticipants.length >= workout.max_participants;
   const spotsLeft = hasMax ? workout.max_participants - acceptedParticipants.length : null;
@@ -492,7 +495,17 @@ export default function WorkoutDetail() {
 
         {/* Participants */}
         <div className="border-t border-border-strong pt-6 mb-8">
-          <p className="section-label">Participants</p>
+          <div className="flex items-baseline gap-3 mb-4">
+            <p className="section-label">Participants</p>
+            {acceptedParticipants.length > 0 && (
+              <span className="font-mono text-[11px] text-fg-muted">
+                {acceptedParticipants.length} {acceptedParticipants.length === 1 ? 'runner' : 'runners'}
+                {genderBreakdown.label && (
+                  <> · <GenderBreakdown breakdown={genderBreakdown} /></>
+                )}
+              </span>
+            )}
+          </div>
 
           {acceptedParticipants.length === 0 && pendingParticipants.length === 0 ? (
             <div className="text-center py-16">

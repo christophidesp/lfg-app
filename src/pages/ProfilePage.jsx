@@ -9,11 +9,15 @@ import ReportButton from '../components/ReportButton';
 import Footer from '../components/Footer';
 import { GENDER_IDENTITIES } from '../constants/identity';
 
-function spotsRemaining(workout) {
-  const accepted = (workout.workout_participants || []).filter(
+function acceptedCount(workout) {
+  return (workout.workout_participants || []).filter(
     (p) => p.status === 'accepted'
   ).length;
-  return Math.max(0, (workout.max_participants || 5) - accepted);
+}
+
+function spotsRemaining(workout) {
+  if (workout.max_participants == null) return null;
+  return Math.max(0, workout.max_participants - acceptedCount(workout));
 }
 
 function filterByPrivacy(workouts, isOwner, viewerClubIds) {
@@ -239,6 +243,7 @@ function WorkoutSection({ title, workouts, allHidden, onRowClick }) {
 
 function WorkoutRow({ workout, onClick }) {
   const spots = spotsRemaining(workout);
+  const joined = acceptedCount(workout);
 
   return (
     <button
@@ -277,14 +282,24 @@ function WorkoutRow({ workout, onClick }) {
       <div className="flex items-center gap-2 flex-shrink-0">
         <span
           className={`font-mono text-[10px] uppercase tracking-[0.06em] ${
-            spots <= 0
+            spots === null
+              ? joined === 0
+                ? 'text-[#4ADE80]'
+                : 'text-fg-muted'
+              : spots <= 0
               ? 'text-fg-muted'
               : spots <= 2
               ? 'text-accent'
               : 'text-[#4ADE80]'
           }`}
         >
-          {spots <= 0 ? 'Full' : `${spots} spot${spots !== 1 ? 's' : ''}`}
+          {spots === null
+            ? joined === 0
+              ? 'Open'
+              : `${joined} joined`
+            : spots <= 0
+            ? 'Full'
+            : `${spots} remaining ${spots === 1 ? 'spot' : 'spots'}`}
         </span>
         <ChevronRight size={14} className="text-fg-muted" />
       </div>

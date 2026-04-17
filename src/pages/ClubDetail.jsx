@@ -6,6 +6,8 @@ import { format } from 'date-fns';
 import Avatar from '../components/Avatar';
 import WorkoutCover from '../components/WorkoutCover';
 import ReportButton from '../components/ReportButton';
+import { getGenderBreakdown, getHostingBreakdown } from '../lib/genderBreakdown';
+import GenderBreakdown from '../components/GenderBreakdown';
 
 export default function ClubDetail() {
   const { id } = useParams();
@@ -48,7 +50,7 @@ export default function ClubDetail() {
       .from('club_members')
       .select(`
         *,
-        profiles:user_id (id, full_name, avatar_url)
+        profiles:user_id (id, full_name, avatar_url, gender_identity, display_gender_on_profile)
       `)
       .eq('club_id', id);
 
@@ -64,7 +66,7 @@ export default function ClubDetail() {
       .from('workouts')
       .select(`
         *,
-        profiles!creator_id (full_name, avatar_url),
+        profiles!creator_id (full_name, avatar_url, gender_identity, display_gender_on_profile),
         workout_participants (id, status)
       `)
       .eq('club_id', id)
@@ -143,9 +145,25 @@ export default function ClubDetail() {
               {club.description && (
                 <p className="text-[13px] font-light text-fg-secondary mt-1">{club.description}</p>
               )}
-              <p className="font-mono text-[11px] text-fg-muted mt-2">
-                {members.length} {members.length === 1 ? 'member' : 'members'}
-              </p>
+              {(() => {
+                const memberBreakdown = getGenderBreakdown(members, { minForDisplay: 5 });
+                const hostingBreakdown = getHostingBreakdown(workouts);
+                return (
+                  <>
+                    <p className="font-mono text-[11px] text-fg-muted mt-2">
+                      {members.length} {members.length === 1 ? 'member' : 'members'}
+                      {memberBreakdown.label && (
+                        <> · <GenderBreakdown breakdown={memberBreakdown} /></>
+                      )}
+                    </p>
+                    {hostingBreakdown && (
+                      <p className="font-mono text-[11px] text-fg-muted mt-1">
+                        Workouts hosted: {hostingBreakdown}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {isAdmin && (
@@ -282,7 +300,23 @@ export default function ClubDetail() {
                           <p className="text-[13px] font-light text-fg-secondary line-clamp-2">{workout.description}</p>
                         )}
                       </div>
-                      <div className="px-5 py-3.5 bg-surface-secondary border-t border-border flex items-center justify-end">
+                      <div className="px-5 py-3.5 bg-surface-secondary border-t border-border flex items-center justify-between">
+                        {(() => {
+                          const accepted = (workout.workout_participants || []).filter(p => p.status === 'accepted');
+                          const gb = getGenderBreakdown(accepted);
+                          return (
+                            <span className="font-mono text-[11px] text-fg-muted">
+                              {accepted.length > 0 && (
+                                <>
+                                  {accepted.length} joined
+                                  {gb.label && (
+                                    <> · <GenderBreakdown breakdown={gb} /></>
+                                  )}
+                                </>
+                              )}
+                            </span>
+                          );
+                        })()}
                         <span className="btn-primary text-[10px] px-3 py-1">View</span>
                       </div>
                     </Link>

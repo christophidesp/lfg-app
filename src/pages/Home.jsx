@@ -9,6 +9,8 @@ import Avatar from '../components/Avatar';
 import { X, ChevronRight } from 'lucide-react';
 import { WORKOUT_TYPES } from '../constants/workoutTypes';
 import { useGeolocation } from '../hooks/useGeolocation';
+import { getGenderBreakdown } from '../lib/genderBreakdown';
+import GenderBreakdown from '../components/GenderBreakdown';
 
 const ALL_CHIPS = ['All', ...WORKOUT_TYPES];
 
@@ -36,7 +38,8 @@ function spotsRemaining(workout) {
   const accepted = (workout.workout_participants || []).filter(
     (p) => p.status === 'accepted'
   ).length;
-  return Math.max(0, (workout.max_participants || 5) - accepted);
+  if (workout.max_participants == null) return null;
+  return Math.max(0, workout.max_participants - accepted);
 }
 
 function formatDateDivider(dateStr) {
@@ -71,7 +74,7 @@ export default function Home() {
           *,
           profiles!creator_id (id, full_name, avatar_url),
           clubs!club_id (id, name, avatar_url),
-          workout_participants (id, status),
+          workout_participants (id, status, profiles!user_id (gender_identity, display_gender_on_profile)),
           races (name)
         `)
         .gte('workout_date', new Date().toISOString())
@@ -430,6 +433,9 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
   const isClubHost = workout.host_type === 'club' && workout.clubs;
   const hostName = isClubHost ? workout.clubs.name : formatHostName(workout.profiles?.full_name);
 
+  const accepted = (workout.workout_participants || []).filter(p => p.status === 'accepted');
+  const genderBreakdown = getGenderBreakdown(accepted);
+
   return (
     <button
       onClick={onClick}
@@ -497,17 +503,34 @@ function WorkoutRow({ workout, hasLocation, showDate, onClick }) {
 
       {/* Spots + arrow */}
       <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex flex-col items-end gap-0.5">
         <span
           className={`font-mono text-[10px] uppercase tracking-[0.06em] px-2 py-[1px] ${
-            spots <= 0
+            spots === null
+              ? accepted.length === 0
+                ? 'text-[#4ADE80]'
+                : 'text-fg-muted'
+              : spots <= 0
               ? 'text-fg-muted'
               : spots <= 2
               ? 'text-accent'
               : 'text-[#4ADE80]'
           }`}
         >
-          {spots <= 0 ? 'Full' : `${spots}`}
+          {spots === null
+            ? accepted.length === 0
+              ? 'Open'
+              : `${accepted.length} joined`
+            : spots <= 0
+            ? 'Full'
+            : `${spots} remaining ${spots === 1 ? 'spot' : 'spots'}`}
         </span>
+          {genderBreakdown.label && (
+            <span className="font-mono text-[10px] text-fg-muted px-2">
+              <GenderBreakdown breakdown={genderBreakdown} />
+            </span>
+          )}
+        </div>
         <ChevronRight size={14} className="text-fg-muted" />
       </div>
     </button>
