@@ -76,6 +76,7 @@ export default function Home() {
         `)
         .gte('workout_date', new Date().toISOString())
         .eq('visibility', 'public')
+        .is('cancelled_at', null)
         .order('workout_date', { ascending: true });
 
       if (!error && data) {

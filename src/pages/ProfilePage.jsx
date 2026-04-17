@@ -51,6 +51,7 @@ export default function ProfilePage() {
           .from('workouts')
           .select('*, workout_participants (id, status), clubs!club_id (id, name, avatar_url)')
           .eq('creator_id', id)
+          .is('cancelled_at', null)
           .order('workout_date', { ascending: false }),
         supabase
           .from('workout_participants')
@@ -68,7 +69,7 @@ export default function ProfilePage() {
     setProfile(profileData || null);
     setCreatedWorkouts(created || []);
     setJoinedWorkouts(
-      (joined || []).map((p) => p.workouts).filter(Boolean)
+      (joined || []).map((p) => p.workouts).filter((w) => w && !w.cancelled_at)
     );
     setViewerClubIds((clubs || []).map((c) => c.club_id));
     setLoading(false);

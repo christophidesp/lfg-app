@@ -33,6 +33,7 @@ export default function Calendar() {
         .from('workouts')
         .select('id, name, workout_type, workout_date, address, location')
         .eq('creator_id', user.id)
+        .is('cancelled_at', null)
         .gte('workout_date', monthStart.toISOString())
         .lte('workout_date', monthEnd.toISOString());
 
@@ -41,7 +42,7 @@ export default function Calendar() {
         .from('workout_participants')
         .select(`
           workout_id,
-          workouts (id, name, workout_type, workout_date, address, location, creator_id)
+          workouts (id, name, workout_type, workout_date, address, location, creator_id, cancelled_at)
         `)
         .eq('user_id', user.id)
         .eq('status', 'accepted');
@@ -49,7 +50,7 @@ export default function Calendar() {
       const joinedInMonth = (participantRows || [])
         .map((r) => r.workouts)
         .filter((w) => {
-          if (!w) return false;
+          if (!w || w.cancelled_at) return false;
           const d = new Date(w.workout_date);
           return d >= monthStart && d <= monthEnd && w.creator_id !== user.id;
         });

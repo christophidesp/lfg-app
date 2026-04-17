@@ -24,6 +24,7 @@ export default function Dashboard() {
       .from('workouts')
       .select('*')
       .eq('creator_id', user.id)
+      .is('cancelled_at', null)
       .order('workout_date', { ascending: true });
 
     const { data: joined } = await supabase
@@ -37,7 +38,7 @@ export default function Dashboard() {
       .order('created_at', { ascending: false });
 
     setMyWorkouts(created || []);
-    setJoinedWorkouts(joined || []);
+    setJoinedWorkouts((joined || []).filter(j => !j.workouts?.cancelled_at));
     setLoading(false);
   };
 

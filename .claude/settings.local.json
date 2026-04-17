@@ -14,7 +14,11 @@
       "mcp__da6644f6-69da-4bae-82e0-fbc7c19057cc__execute_sql",
       "Bash(npx vite:*)",
       "Bash(find /Users/panos/Panos/lfg-app -maxdepth 2 -type f \\\\\\(-name .env* -o -name config.toml \\\\\\))",
-      "Bash(wc -l /Users/panos/Panos/lfg-app/src/pages/*.jsx)"
+      "Bash(wc -l /Users/panos/Panos/lfg-app/src/pages/*.jsx)",
+      "Bash(npx supabase *)",
+      "mcp__da6644f6-69da-4bae-82e0-fbc7c19057cc__get_logs",
+      "Bash(git reset *)",
+      "Bash(git add *)"
     ]
   }
 }

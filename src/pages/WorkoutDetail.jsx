@@ -155,7 +155,7 @@ export default function WorkoutDetail() {
     const participant = participants.find(p => p.id === participantId);
     const { error } = await supabase
       .from('workout_participants')
-      .delete()
+      .update({ status: 'rejected' })
       .eq('id', participantId);
 
     if (!error) {
@@ -231,12 +231,12 @@ export default function WorkoutDetail() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this workout?')) return;
+  const handleCancel = async () => {
+    if (!confirm('Are you sure you want to cancel this workout? All accepted participants will be notified.')) return;
 
     const { error } = await supabase
       .from('workouts')
-      .delete()
+      .update({ cancelled_at: new Date().toISOString() })
       .eq('id', id);
 
     if (!error) {
@@ -270,6 +270,15 @@ export default function WorkoutDetail() {
   return (
     <div className="min-h-screen bg-surface py-8">
       <div className="max-w-3xl mx-auto px-6">
+        {/* Cancelled banner */}
+        {workout.cancelled_at && (
+          <div className="border border-[#EF4444] bg-[#EF4444]/10 px-5 py-3 mb-4">
+            <p className="font-mono text-[12px] uppercase tracking-[0.06em] text-[#EF4444]">
+              This workout has been cancelled
+            </p>
+          </div>
+        )}
+
         {/* Workout Card */}
         <div className="card mb-6">
           <WorkoutCover imageUrl={workout.image_url} workoutType={workout.workout_type} />
@@ -383,7 +392,7 @@ export default function WorkoutDetail() {
                   {copied ? <><Check size={13} /> Copied!</> : <><Share2 size={13} /> Copy link</>}
                 </button>
               )}
-              {isCreator && (
+              {isCreator && !workout.cancelled_at && (
                 <Link
                   to={`/workout/${id}/edit`}
                   className="btn-secondary flex items-center gap-1.5"
@@ -392,12 +401,12 @@ export default function WorkoutDetail() {
                   Edit
                 </Link>
               )}
-              {isCreator && (
+              {isCreator && !workout.cancelled_at && (
                 <button
-                  onClick={handleDelete}
+                  onClick={handleCancel}
                   className="btn-decline"
                 >
-                  Delete
+                  Cancel
                 </button>
               )}
               {!isCreator && (
@@ -439,7 +448,7 @@ export default function WorkoutDetail() {
         )}
 
         {/* Join Actions */}
-        {!isCreator && (
+        {!isCreator && !workout.cancelled_at && (
           <div className="mb-6">
             {!userParticipation && (
               <button

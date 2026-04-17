@@ -280,7 +280,14 @@ export default function InvitePage() {
         )}
 
         {/* Actions for authenticated users */}
-        {user && (
+        {user && workout.cancelled_at && (
+          <div className="border border-[#EF4444] bg-[#EF4444]/10 px-5 py-3 text-center">
+            <p className="font-mono text-[12px] uppercase tracking-[0.06em] text-[#EF4444]">
+              This workout has been cancelled
+            </p>
+          </div>
+        )}
+        {user && !workout.cancelled_at && (
           <div>
             {userParticipation?.status === 'accepted' && (
               <div className="badge-open font-mono text-[12px] px-4 py-3 w-full text-center">

@@ -26,6 +26,12 @@ export default function EditProfile() {
     pronouns: '',
     display_gender_on_profile: true,
     display_pronouns_on_profile: true,
+    email_notifications: {
+      request_received: true,
+      request_accepted: true,
+      request_declined: true,
+      workout_cancelled: true,
+    },
   });
   const [customPronouns, setCustomPronouns] = useState('');
   const [pronounMode, setPronounMode] = useState('');
@@ -45,6 +51,7 @@ export default function EditProfile() {
     if (data) {
       const pronounsValue = data.pronouns || '';
       const isPreset = PRONOUN_PRESETS.some(p => p.value === pronounsValue && p.value !== 'custom');
+      const defaultNotifs = { request_received: true, request_accepted: true, request_declined: true, workout_cancelled: true };
       setFormData({
         full_name: data.full_name || '',
         bio: data.bio || '',
@@ -55,6 +62,7 @@ export default function EditProfile() {
         pronouns: pronounsValue,
         display_gender_on_profile: data.display_gender_on_profile ?? true,
         display_pronouns_on_profile: data.display_pronouns_on_profile ?? true,
+        email_notifications: { ...defaultNotifs, ...data.email_notifications },
       });
       if (pronounsValue && !isPreset) {
         setPronounMode('custom');
@@ -112,6 +120,7 @@ export default function EditProfile() {
       pronouns: resolvedPronouns || null,
       display_gender_on_profile: formData.display_gender_on_profile,
       display_pronouns_on_profile: formData.display_pronouns_on_profile,
+      email_notifications: formData.email_notifications,
       updated_at: new Date().toISOString(),
     };
 
@@ -322,6 +331,43 @@ export default function EditProfile() {
                   <span className="text-[13px] text-fg-secondary font-light">Display pronouns on profile</span>
                 </label>
               )}
+            </div>
+          </div>
+
+          {/* Email notifications section */}
+          <div className="border-t border-border mt-8 pt-6">
+            <p className="font-sans text-[17px] font-medium mb-1">Email notifications</p>
+            <p className="text-[12px] font-light text-fg-muted leading-relaxed mb-6">
+              Choose which email notifications you'd like to receive.
+            </p>
+            <div className="space-y-4">
+              {[
+                { key: 'request_received', label: 'Join request received', desc: 'When someone requests to join your workout' },
+                { key: 'request_accepted', label: 'Request accepted', desc: 'When a host approves your join request' },
+                { key: 'request_declined', label: 'Request declined', desc: 'When a host declines your join request' },
+                { key: 'workout_cancelled', label: 'Workout cancelled', desc: 'When a workout you joined is cancelled' },
+              ].map(({ key, label, desc }) => (
+                <label key={key} className="flex items-start gap-3 cursor-pointer">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={formData.email_notifications[key]}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        email_notifications: { ...prev.email_notifications, [key]: e.target.checked },
+                      }))}
+                      className="sr-only peer"
+                    />
+                    <div className="w-8 h-4 bg-border peer-checked:bg-accent relative transition-colors">
+                      <div className={`absolute top-0.5 w-3 h-3 bg-surface transition-all ${formData.email_notifications[key] ? 'left-[18px]' : 'left-0.5'}`} />
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[13px] font-medium text-fg">{label}</span>
+                    <p className="text-[12px] text-fg-muted font-light">{desc}</p>
+                  </div>
+                </label>
+              ))}
             </div>
           </div>
 

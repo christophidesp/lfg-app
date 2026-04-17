@@ -82,6 +82,7 @@ export default function BrowseWorkouts() {
         clubs!club_id (id, name, avatar_url),
         workout_participants (id, status)
       `)
+      .is('cancelled_at', null)
       .order('workout_date', { ascending: true });
 
     if (!showPast) {
