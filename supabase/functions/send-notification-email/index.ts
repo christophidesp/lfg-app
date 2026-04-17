@@ -64,8 +64,8 @@ async function sendEmail(to: string, subject: string, html: string) {
     },
     body: JSON.stringify({ from: EMAIL_FROM, to, subject, html }),
   });
-  if (!res.ok) console.error("Resend error", res.status, await res.text());
-  return res.ok;
+  const body = await res.text();
+  if (!res.ok) console.error("Resend error", res.status, body);
 }
 
 function fmtDate(iso: string) {
