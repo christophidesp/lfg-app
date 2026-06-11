@@ -21,6 +21,8 @@ import InvitePage from './pages/InvitePage';
 import ClubInvitePage from './pages/ClubInvitePage';
 import Calendar from './pages/Calendar';
 import CodeOfConduct from './pages/CodeOfConduct';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import Navbar from './components/Navbar';
 import ConductModal from './components/ConductModal';
 
@@ -230,6 +232,8 @@ function AppRoutes() {
           }
         />
         <Route path="/code-of-conduct" element={<CodeOfConduct />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
       </Routes>
       </ConductGate>
     </>
