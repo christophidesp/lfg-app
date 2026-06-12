@@ -141,7 +141,19 @@ export default function ClubDetail() {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em]">{club.name}</h1>
+              <div className="flex items-start justify-between gap-2">
+                <h1 className="font-sans text-[26px] font-normal tracking-[-0.01em] leading-tight min-w-0 break-words">{club.name}</h1>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {isAdmin && (
+                    <Link to={`/clubs/${id}/settings`} className="btn-secondary text-[11px] px-3 py-1.5">
+                      Settings
+                    </Link>
+                  )}
+                  {!isAdmin && (
+                    <ReportButton clubId={id} />
+                  )}
+                </div>
+              </div>
               {club.description && (
                 <p className="text-[13px] font-light text-fg-secondary mt-1">{club.description}</p>
               )}
@@ -165,17 +177,14 @@ export default function ClubDetail() {
                 );
               })()}
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {isAdmin && (
-                <Link to={`/clubs/${id}/settings`} className="btn-secondary text-[11px] px-3 py-1.5">
-                  Settings
-                </Link>
-              )}
+          </div>
+          {(!membership || isPending) && (
+            <div className="mt-4 flex items-center gap-2">
               {!membership && (
                 <button
                   onClick={handleJoinRequest}
                   disabled={actionLoading}
-                  className="btn-accent text-[11px] px-4 py-1.5 disabled:opacity-50"
+                  className="btn-accent text-[11px] px-4 py-2 disabled:opacity-50 w-full"
                 >
                   Request to Join
                 </button>
@@ -183,11 +192,8 @@ export default function ClubDetail() {
               {isPending && (
                 <span className="badge-pending">Join Pending</span>
               )}
-              {!isAdmin && (
-                <ReportButton clubId={id} />
-              )}
             </div>
-          </div>
+          )}
         </div>
 
         {/* Pending Requests (admin only) */}
