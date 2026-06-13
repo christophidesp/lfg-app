@@ -27,6 +27,9 @@ export default function ClubSettings() {
   const [inviteToken, setInviteToken] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   useEffect(() => {
     fetchClubData();
@@ -196,6 +199,21 @@ export default function ClubSettings() {
       .eq('id', memberId);
 
     if (!error) fetchClubData();
+  };
+
+  const handleDeleteClub = async () => {
+    setDeleteLoading(true);
+    const { error } = await supabase
+      .from('clubs')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      setError(error.message);
+      setDeleteLoading(false);
+      return;
+    }
+    navigate('/clubs');
   };
 
   if (loading) {
@@ -404,7 +422,7 @@ export default function ClubSettings() {
         </div>
 
         {/* Manage Members */}
-        <div className="border border-border bg-surface p-6">
+        <div className="border border-border bg-surface p-6 mb-6">
           <h2 className="section-label">Members ({members.length})</h2>
           <div className="space-y-0">
             {members.map((member, i) => (
@@ -460,6 +478,56 @@ export default function ClubSettings() {
             ))}
           </div>
         </div>
+        {/* Danger Zone — owner only */}
+        {userRole === 'owner' && (
+          <div className="border border-[#EF4444]/30 bg-surface p-6">
+            <h2 className="section-label text-[#EF4444]">Danger Zone</h2>
+            {!showDeleteConfirm ? (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-mono text-[13px]">Delete this club</p>
+                  <p className="font-mono text-[11px] text-fg-muted mt-0.5">
+                    This will permanently delete the club, its members, and all associated workouts.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="btn-decline text-[11px] px-4 py-1.5 flex-shrink-0"
+                >
+                  Delete Club
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="font-mono text-[12px] text-fg-secondary">
+                  Type <span className="text-fg font-medium">{club.name}</span> to confirm deletion.
+                </p>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder={club.name}
+                  className="input-field"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDeleteClub}
+                    disabled={deleteConfirmText !== club.name || deleteLoading}
+                    className="btn-decline text-[11px] px-4 py-1.5 disabled:opacity-30"
+                  >
+                    {deleteLoading ? 'Deleting...' : 'Permanently Delete'}
+                  </button>
+                  <button
+                    onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
+                    className="btn-secondary text-[11px] px-4 py-1.5"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

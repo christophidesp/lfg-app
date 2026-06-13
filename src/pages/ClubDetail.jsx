@@ -130,11 +130,11 @@ export default function ClubDetail() {
       <div className="max-w-3xl mx-auto px-6">
         {/* Club Header */}
         <div className="border border-border bg-surface p-6 mb-6">
-          <div className="flex items-start gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
             {club.avatar_url ? (
-              <img src={club.avatar_url} alt={club.name} className="w-16 h-16 object-cover border border-border flex-shrink-0" />
+              <img src={club.avatar_url} alt={club.name} className="w-full h-40 sm:w-16 sm:h-16 object-cover border border-border sm:flex-shrink-0" />
             ) : (
-              <div className="w-16 h-16 bg-surface-secondary border border-border flex items-center justify-center flex-shrink-0">
+              <div className="w-full h-40 sm:w-16 sm:h-16 bg-surface-secondary border border-border flex items-center justify-center sm:flex-shrink-0">
                 <span className="font-mono text-[22px] font-medium text-fg-secondary">
                   {club.name.charAt(0).toUpperCase()}
                 </span>
