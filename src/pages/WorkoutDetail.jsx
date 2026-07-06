@@ -356,8 +356,8 @@ export default function WorkoutDetail() {
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-3.5 bg-surface-secondary border-t border-border flex items-center justify-between">
-            <div className="flex-1 mr-4">
+          <div className="px-5 py-3.5 bg-surface-secondary border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 sm:mr-4">
               {hasMax ? (
                 <>
                   <div className="h-[2px] bg-border w-full">
@@ -376,12 +376,12 @@ export default function WorkoutDetail() {
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center flex-wrap gap-2 justify-end">
               {isCreator && !inviteToken && (
                 <button
                   onClick={handleShare}
                   disabled={shareLoading}
-                  className="btn-secondary flex items-center gap-1.5"
+                  className="btn-secondary flex items-center gap-1.5 px-3 py-2 sm:px-5 sm:py-2.5"
                 >
                   <Share2 size={13} />
                   {shareLoading ? 'Generating...' : 'Share'}
@@ -390,7 +390,7 @@ export default function WorkoutDetail() {
               {isCreator && inviteToken && (
                 <button
                   onClick={handleCopyLink}
-                  className="btn-secondary flex items-center gap-1.5"
+                  className="btn-secondary flex items-center gap-1.5 px-3 py-2 sm:px-5 sm:py-2.5"
                 >
                   {copied ? <><Check size={13} /> Copied!</> : <><Share2 size={13} /> Copy link</>}
                 </button>
@@ -398,7 +398,7 @@ export default function WorkoutDetail() {
               {isCreator && !workout.cancelled_at && (
                 <Link
                   to={`/workout/${id}/edit`}
-                  className="btn-secondary flex items-center gap-1.5"
+                  className="btn-secondary flex items-center gap-1.5 px-3 py-2 sm:px-5 sm:py-2.5"
                 >
                   <Pencil size={13} />
                   Edit
@@ -407,7 +407,7 @@ export default function WorkoutDetail() {
               {isCreator && !workout.cancelled_at && (
                 <button
                   onClick={handleCancel}
-                  className="btn-decline flex items-center gap-1.5 px-5 py-2.5"
+                  className="btn-decline flex items-center gap-1.5 px-3 py-2 sm:px-5 sm:py-2.5"
                 >
                   <X size={13} />
                   Cancel
