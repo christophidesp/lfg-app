@@ -5,6 +5,9 @@ import { supabase } from '../lib/supabase';
 import PlacesAutocomplete from '../components/PlacesAutocomplete';
 import { WORKOUT_TYPES } from '../constants/workoutTypes';
 
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
 export default function CreateWorkout() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -120,6 +123,15 @@ export default function CreateWorkout() {
         next.host_type = 'user';
       }
       return next;
+    });
+  };
+
+  const handleTimePartChange = (part) => (e) => {
+    const val = e.target.value;
+    setFormData(prev => {
+      const [h, m] = (prev.workout_time || ':').split(':');
+      const workout_time = part === 'hour' ? `${val}:${m}` : `${h}:${val}`;
+      return { ...prev, workout_time };
     });
   };
 
@@ -325,16 +337,32 @@ export default function CreateWorkout() {
                 />
               </div>
               <div>
-                <label htmlFor="workout_time" className="form-label">Time *</label>
-                <input
-                  id="workout_time"
-                  name="workout_time"
-                  type="time"
-                  required
-                  value={formData.workout_time}
-                  onChange={handleChange}
-                  className="input-field"
-                />
+                <label htmlFor="workout_time_hour" className="form-label">Time (24h) *</label>
+                <div className="flex items-center gap-2">
+                  <select
+                    id="workout_time_hour"
+                    name="workout_time_hour"
+                    required
+                    value={formData.workout_time.split(':')[0] || ''}
+                    onChange={handleTimePartChange('hour')}
+                    className="input-field"
+                  >
+                    <option value="" disabled>HH</option>
+                    {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                  <span className="text-fg-muted">:</span>
+                  <select
+                    id="workout_time_minute"
+                    name="workout_time_minute"
+                    required
+                    value={formData.workout_time.split(':')[1] || ''}
+                    onChange={handleTimePartChange('minute')}
+                    className="input-field"
+                  >
+                    <option value="" disabled>MM</option>
+                    {MINUTES.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
 
