@@ -51,11 +51,18 @@ export const AuthProvider = ({ children }) => {
     return { data, error };
   };
 
-  const signInWithGoogle = async () => {
+  // OAuth tokens come back in the URL hash. The landing route must NOT be one
+  // that renders <Navigate> immediately (e.g. /dashboard), or the hash is
+  // stripped before supabase-js reads it — this broke Google sign-in on mobile.
+  const signInWithGoogle = async (next) => {
+    let path = typeof next === 'string' && next.startsWith('/') && !next.startsWith('//')
+      ? next
+      : '/home';
+    if (path === '/dashboard') path = '/home';
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/dashboard',
+        redirectTo: window.location.origin + path,
       },
     });
     return { data, error };
